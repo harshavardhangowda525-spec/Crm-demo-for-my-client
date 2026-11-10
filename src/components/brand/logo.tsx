@@ -5,16 +5,10 @@ export function LogoMark({ className }: { className?: string }) {
   return (
     <div className={cn("metal grid size-10 shrink-0 place-items-center rounded-xl", className)} aria-hidden>
       <svg viewBox="0 0 32 32" className="size-[22px]">
-        <defs>
-          <linearGradient id="mh-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#E4FF9A" />
-            <stop offset="1" stopColor="#C6FF45" />
-          </linearGradient>
-        </defs>
         <path
           d="M4 25V8l6 7 6-7 6 7 6-7v17"
           fill="none"
-          stroke="url(#mh-g)"
+          stroke="#C6FF45"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"

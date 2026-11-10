@@ -48,6 +48,7 @@ body {
 }
 
 body {
+  overflow-x: clip;
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
