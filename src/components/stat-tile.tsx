@@ -2,8 +2,12 @@
 
 import * as React from "react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import type { LucideIcon } from "lucide-react";
+import { BadgeCheck, MessageSquareText, UserCog, Users, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/** Icons are referenced by name: components cannot cross the server→client boundary. */
+const ICONS = { users: Users, enquiries: MessageSquareText, memberships: BadgeCheck, staff: UserCog } satisfies Record<string, LucideIcon>;
+export type StatIcon = keyof typeof ICONS;
 
 function AnimatedNumber({ value }: { value: number }) {
   const reduce = useReducedMotion();
@@ -24,17 +28,18 @@ export function StatTile({
   label,
   value,
   hint,
-  icon: Icon,
+  icon,
   accent = "lime",
   index = 0,
 }: {
   label: string;
   value: number | null;
   hint?: string;
-  icon: LucideIcon;
+  icon: StatIcon;
   accent?: "lime" | "cyan";
   index?: number;
 }) {
+  const Icon = ICONS[icon];
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}

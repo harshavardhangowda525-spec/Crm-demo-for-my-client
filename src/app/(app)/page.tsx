@@ -1,4 +1,3 @@
-import { Users, BadgeCheck, MessageSquareText, UserCog } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { GlassCard, SectionTitle } from "@/components/ui/card";
@@ -32,10 +31,10 @@ export default async function OverviewPage() {
   ).map(toCount);
 
   const tiles = [
-    { label: "Customers", value: customers, icon: Users, hint: "Total profiles on record", accent: "cyan" as const },
-    { label: "Open enquiries", value: openEnquiries, icon: MessageSquareText, hint: "New, follow-up or interested", accent: "lime" as const },
-    { label: "Active memberships", value: activeMemberships, icon: BadgeCheck, hint: "Active or currently paused", accent: "lime" as const },
-    { label: "Team", value: staffCount, icon: UserCog, hint: "Active staff accounts", accent: "cyan" as const },
+    { label: "Customers", value: customers, icon: "users" as const, hint: "Total profiles on record", accent: "cyan" as const },
+    { label: "Open enquiries", value: openEnquiries, icon: "enquiries" as const, hint: "New, follow-up or interested", accent: "lime" as const },
+    { label: "Active memberships", value: activeMemberships, icon: "memberships" as const, hint: "Active or currently paused", accent: "lime" as const },
+    { label: "Team", value: staffCount, icon: "staff" as const, hint: "Active staff accounts", accent: "cyan" as const },
   ];
 
   return (
