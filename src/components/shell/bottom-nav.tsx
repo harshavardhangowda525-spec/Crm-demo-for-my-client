@@ -27,7 +27,7 @@ export function BottomNav({ role }: { role: StaffRole }) {
         aria-label="Main navigation"
         className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(env(safe-area-inset-bottom),12px)] lg:hidden"
       >
-        <div className="glass mx-auto flex max-w-md items-stretch justify-between rounded-[22px] !bg-[linear-gradient(180deg,rgb(25_33_48/0.96),rgb(17_23_34/0.97))] p-1.5 shadow-[0_-8px_30px_-6px_rgb(0_0_0/0.7)]">
+        <div className="mx-auto flex max-w-md items-stretch justify-between rounded-[22px] bg-[#141b27] p-1.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.08),inset_0_0_0_1px_rgb(255_255_255/0.06),0_-10px_30px_-8px_rgb(0_0_0/0.8)]">
           {primary.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
