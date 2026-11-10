@@ -16,7 +16,9 @@ Legend: ✅ done & tested · 🟡 in progress · ⬜ not started · 🔒 blocked
 - ✅ App shell: collapsible desktop sidebar, mobile bottom nav + "More" bottom sheet, header, page transitions, skeletons, error state
 - ✅ Owner bootstrap script (`npm run setup:owner`)
 - ✅ Tests: 19 DB security tests, 21 unit tests (phone normalisation, permissions)
-- 🔒 Apply migrations to Supabase — needs a project slot (free-tier limit reached)
+- ✅ Hardening migration: pinned function search_path, extensions moved out of public
+- ✅ Supabase project "Muscle House Gym OS" (ap-south-1 Mumbai) created; 3 migrations applied and checksum-verified; security advisor clean except intentional notices
+- ⬜ Create owner account (needs owner email) & disable public sign-ups in dashboard
 
 ## Phase 2 — CRM
 - ⬜ Customer creation with duplicate detection
