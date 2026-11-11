@@ -9,10 +9,17 @@ do $$ declare r jsonb; begin
     raise exception 'seed counts: %', r; end if;
   if exists (select 1 from public.whatsapp_messages where is_demo and status in ('sent','delivered','read')) then
     raise exception 'demo messages claim real delivery'; end if;
+  if exists (select 1 from public.invoices where is_demo and invoice_number not like '%/DEMO-%') then
+    raise exception 'demo invoices use the real number series'; end if;
+  if exists (select 1 from public.invoice_counters where gym_id = '10000000-0000-0000-0000-0000000000d1'
+             and financial_year not like 'DEMO-%') then
+    raise exception 'demo seed consumed real invoice numbers'; end if;
   raise notice 'ok: demo seed → %', r;
+  raise notice 'ok: demo invoices use a separate DEMO number series';
   r := private.purge_demo('10000000-0000-0000-0000-0000000000d1');
   if exists (select 1 from public.customers where gym_id = '10000000-0000-0000-0000-0000000000d1')
-     or exists (select 1 from public.invoices where gym_id = '10000000-0000-0000-0000-0000000000d1') then
+     or exists (select 1 from public.invoices where gym_id = '10000000-0000-0000-0000-0000000000d1')
+     or exists (select 1 from public.invoice_counters where gym_id = '10000000-0000-0000-0000-0000000000d1') then
     raise exception 'purge left rows'; end if;
   raise notice 'ok: demo data purged completely';
 end $$;
