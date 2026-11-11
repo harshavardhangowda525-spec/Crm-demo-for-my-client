@@ -6,9 +6,12 @@ import { z } from "zod";
  * build (via `server-only`), so the service-role key can never ship to browsers.
  */
 const serverSchema = z.object({
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
-  CRON_SECRET: z.string().min(16).optional(),
-  PORTAL_SESSION_SECRET: z.string().min(32).optional(),
+  // Optional: only the owner bootstrap script needs it. The app itself never
+  // uses the service role; privileged work runs in checked database functions.
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(20).optional(),
+  // Shared with the database (private.app_secrets 'dispatch'): authenticates
+  // the scheduler → app calls and the app → dispatcher RPCs.
+  CRON_SECRET: z.string().min(32).optional(),
   WHATSAPP_PROVIDER: z.enum(["mock", "meta_cloud"]).default("mock"),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   WHATSAPP_ACCESS_TOKEN: z.string().optional(),
