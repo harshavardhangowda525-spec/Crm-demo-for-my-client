@@ -76,3 +76,20 @@ export async function runAutomationsNow(): Promise<ActionResult<{ queued: number
     return ok({ queued: r.queued, statusChanges: r.status_changes, dispatch });
   });
 }
+
+export async function sendWhatsAppTest(): Promise<
+  ActionResult<{ to: string; status: "sent" | "simulated" | "failed"; error: string | null }>
+> {
+  return guard(async () => {
+    await authorize("automations.manage");
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("send_whatsapp_test");
+    if (error) return fail(dbError(error));
+    const r = data as { message_id: string; to: string };
+    await dispatchDueMessages({ messageId: r.message_id });
+    const { data: msg } = await supabase.from("whatsapp_messages").select("status, last_error").eq("id", r.message_id).single();
+    revalidatePath("/automations");
+    const status = msg?.status === "sent" || msg?.status === "delivered" || msg?.status === "read" ? "sent" : msg?.status === "simulated" ? "simulated" : "failed";
+    return ok({ to: r.to, status, error: msg?.last_error ?? null });
+  });
+}

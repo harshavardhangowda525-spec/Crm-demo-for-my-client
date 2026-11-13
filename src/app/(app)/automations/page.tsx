@@ -9,6 +9,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { EmptyState } from "@/components/ui/empty";
 import { RuleCard } from "@/components/automation/rule-card";
 import { RunAutomationsNow } from "@/components/automation/run-now";
+import { WhatsAppTestButton } from "@/components/automation/whatsapp-test";
 import { RetryMessageButton } from "@/components/automation/retry-button";
 import { formatDateTime, label, MESSAGE_PURPOSE, MESSAGE_STATUS } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
@@ -79,7 +80,14 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
         eyebrow="WhatsApp"
         title="Automation Center"
         description="Deterministic, template-based messages. Every send is logged; nothing is reported as delivered unless WhatsApp confirms it."
-        action={canManage ? <RunAutomationsNow /> : undefined}
+        action={
+          canManage ? (
+            <div className="flex flex-wrap gap-2">
+              <WhatsAppTestButton />
+              <RunAutomationsNow />
+            </div>
+          ) : undefined
+        }
       />
 
       <GlassCard className="flex flex-wrap items-center gap-3 p-4 text-sm">

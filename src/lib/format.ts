@@ -144,6 +144,7 @@ export const MESSAGE_PURPOSE = {
   owner_daily_briefing: "Morning briefing",
   owner_evening_summary: "Evening summary",
   portal_link: "Member portal link",
+  whatsapp_test: "WhatsApp test (hello_world)",
   portal_otp: "Portal login code",
 } as const;
 
