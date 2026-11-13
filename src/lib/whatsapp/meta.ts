@@ -26,6 +26,11 @@ export class MetaCloudProvider implements WhatsAppProvider {
     if (m.params.length) {
       components.push({ type: "body", parameters: m.params.map((text) => ({ type: "text", text: text.slice(0, 1024) })) });
     }
+    // Authentication (one-time code) templates also need the code for their
+    // "Copy code" button.
+    if (m.otpButton && m.params[0]) {
+      components.push({ type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: m.params[0] }] });
+    }
     let res: Response;
     try {
       res = await fetch(`${GRAPH}/${this.phoneNumberId}/messages`, {

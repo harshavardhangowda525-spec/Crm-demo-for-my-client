@@ -14,6 +14,7 @@ type ClaimedMessage = {
   document_path: string | null;
   provider: string;
   body_preview: string | null;
+  purpose: string;
 };
 
 export type DispatchSummary = { claimed: number; sent: number; simulated: number; failed: number; skipped?: string };
@@ -50,6 +51,7 @@ export async function dispatchDueMessages(opts: { limit?: number; messageId?: st
       documentUrl,
       documentFilename: invoiceId ? "invoice.pdf" : undefined,
       bodyPreview: m.body_preview,
+      otpButton: m.purpose === "portal_otp",
     });
 
     const { error: completeError } = await db.rpc("dispatch_complete", {

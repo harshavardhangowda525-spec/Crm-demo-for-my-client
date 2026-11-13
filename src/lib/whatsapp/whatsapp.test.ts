@@ -38,4 +38,14 @@ describe("WhatsApp providers", () => {
     expect(body.template.components[0].type).toBe("header");
     expect(body.template.components[1].parameters[0].text).toBe("Rahul");
   });
+
+  it("adds the copy-code button parameter for authentication templates", async () => {
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ messages: [{ id: "w" }] })));
+    await new MetaCloudProvider("123", "token").send({ ...msg, templateName: "portal_otp", params: ["482913"], otpButton: true });
+    const body = JSON.parse(String((spy.mock.calls[0][1] as RequestInit).body));
+    expect(body.template.components).toEqual([
+      { type: "body", parameters: [{ type: "text", text: "482913" }] },
+      { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: "482913" }] },
+    ]);
+  });
 });

@@ -8,6 +8,8 @@ export type OutgoingMessage = {
   documentUrl?: string;
   documentFilename?: string;
   bodyPreview: string | null;
+  /** Authentication template: repeat the code as the copy-code button parameter. */
+  otpButton?: boolean;
 };
 
 export type SendResult =
