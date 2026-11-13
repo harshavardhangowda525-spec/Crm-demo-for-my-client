@@ -214,6 +214,21 @@ begin
   raise notice 'ok: duplicate automation ignored; delivery failures retried then reported as failed';
 end $$;
 
+-- permanent provider errors are not retried
+do $$ declare
+  s text := private.secret('dispatch');
+  mid uuid;
+begin
+  mid := private.queue_message('10000000-0000-0000-0000-0000000000c1', '20000000-0000-0000-0000-0000000000c1',
+    'renewal_follow_up', '["Rahul","Gym C","Monthly","01 Jan 2027"]', 'test:permanent');
+  perform public.dispatch_claim(s, 10, mid);
+  perform public.dispatch_complete(s, mid, 'failed_permanent', null, '(#132001) Template name does not exist');
+  if (select status from public.whatsapp_messages where id = mid) <> 'failed'
+     or (select attempts from public.whatsapp_messages where id = mid) <> 1 then
+    raise exception 'permanent failure was retried'; end if;
+  raise notice 'ok: permanent provider errors fail immediately with the provider''s reason';
+end $$;
+
 -- ---------------------------------------------------------------- portal
 do $$ declare
   tok text := encode(extensions.gen_random_bytes(32), 'hex');

@@ -57,7 +57,7 @@ export async function dispatchDueMessages(opts: { limit?: number; messageId?: st
     const { error: completeError } = await db.rpc("dispatch_complete", {
       p_secret: secret,
       p_message_id: m.id,
-      p_outcome: result.outcome,
+      p_outcome: result.outcome === "failed" && !result.retryable ? "failed_permanent" : result.outcome,
       p_provider_message_id: result.outcome === "sent" ? result.providerMessageId : null,
       p_error: result.outcome === "failed" ? result.error : null,
     });
