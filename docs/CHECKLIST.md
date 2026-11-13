@@ -62,5 +62,6 @@ Legend: ✅ done & tested · 🟡 in progress · ⬜ not started · 🔒 blocked
 - ✅ Optional AI summary (Claude Haiku 5.5), off by default, cached, never used for money/dates
 - ✅ Simplicity pass: Today first in navigation, optional fields under "More details", Settings → Reminders
 - ✅ Tests: 11 new SQL checks (57 total), renewal unit tests (55 total)
-- ⬜ Apply migrations 0007 + 0008 to Supabase (needs owner approval of the Supabase prompt)
+- ✅ Migrations 0007 + 0008 applied to Supabase (checksum-verified); demo data loaded
+- ✅ Live check on Render (phone size): login → Today, Done, one-tap follow-up with tags, promise on Memory Card, phone search with memory, "Likely to drop" badges, staff pause (new expiry), test-briefing guard
 - 🔒 Real WhatsApp delivery — needs the Meta WhatsApp Business account (see docs/WHATSAPP_TEMPLATES.md)
