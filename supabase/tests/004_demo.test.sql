@@ -3,7 +3,7 @@
 begin;
 insert into public.gyms (id, name) values ('10000000-0000-0000-0000-0000000000d1', 'Demo Gym');
 do $$ declare r jsonb; begin
-  r := private.seed_demo('10000000-0000-0000-0000-0000000000d1');
+  r := private.seed_demo('10000000-0000-0000-0000-0000000000d1') || private.seed_demo_memory('10000000-0000-0000-0000-0000000000d1');
   if (r->>'customers')::int <> 100 or (r->>'open_enquiries')::int <> 25 or (r->>'active_memberships')::int <> 60
      or (r->>'expiring_7_days')::int < 10 or (r->>'pauses')::int < 1 then
     raise exception 'seed counts: %', r; end if;

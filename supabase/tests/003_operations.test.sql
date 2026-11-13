@@ -44,9 +44,9 @@ insert into public.enquiries (gym_id, customer_id, status, follow_up_date)
 values ('10000000-0000-0000-0000-0000000000c1', '20000000-0000-0000-0000-0000000000c1', 'interested', current_date + 2);
 
 do $$ begin
-  if (select count(*) from public.automation_rules where gym_id = '10000000-0000-0000-0000-0000000000c1') <> 6 then
+  if (select count(*) from public.automation_rules where gym_id = '10000000-0000-0000-0000-0000000000c1') <> 12 then
     raise exception 'automation rules not seeded'; end if;
-  raise notice 'ok: six automation rules seeded for a new gym';
+  raise notice 'ok: twelve automation rules seeded for a new gym';
 end $$;
 
 set local role authenticated;
