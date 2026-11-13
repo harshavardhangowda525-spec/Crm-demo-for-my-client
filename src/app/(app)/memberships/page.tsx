@@ -7,6 +7,7 @@ import { FilterChips } from "@/components/ui/filter-chips";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState } from "@/components/ui/empty";
 import { MembershipBadge } from "@/components/crm/lifecycle-badge";
+import { Badge } from "@/components/ui/badge";
 import { addDaysISO, daysBetween, formatDate, todayISO } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,10 @@ export default async function MembershipsPage({ searchParams }: { searchParams: 
       }[]
     >();
   const counts = await Promise.all(VIEWS.map(async ([k]) => (await filtered(k, "id", { count: "exact", head: true })).count ?? 0));
+  const { data: riskRows } = rows?.length
+    ? await supabase.rpc("renewal_stats", { p_customer_ids: rows.map((m) => m.customers.id) })
+    : { data: [] };
+  const risk = new Map(((riskRows ?? []) as { customer_id: string; risk: boolean; risk_reasons: string[] }[]).map((r) => [r.customer_id, r]));
 
   return (
     <div className="space-y-6">
@@ -79,6 +84,11 @@ export default async function MembershipsPage({ searchParams }: { searchParams: 
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                         <p className="font-medium">{cust.full_name}</p>
                         <MembershipBadge status={m.status} />
+                        {risk.get(cust.id)?.risk && ["active", "paused", "expired"].includes(m.status) && (
+                          <span title={risk.get(cust.id)!.risk_reasons.join(" · ")}>
+                            <Badge tone="red">Likely to drop</Badge>
+                          </span>
+                        )}
                       </div>
                       <p className="mt-0.5 truncate text-[13px] text-muted">
                         {m.plan_name} · {formatDate(m.start_date, true)} – {formatDate(m.end_date)} · pauses {m.pause_days_used}/{m.pause_allowance_days}

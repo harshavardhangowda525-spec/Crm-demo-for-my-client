@@ -1,4 +1,5 @@
 import {
+  ListChecks,
   LayoutDashboard,
   Users,
   MessageSquareText,
@@ -21,10 +22,11 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Overview", icon: LayoutDashboard, primaryMobile: true },
+  { href: "/today", label: "Today", icon: ListChecks, primaryMobile: true },
   { href: "/customers", label: "Customers", icon: Users, primaryMobile: true },
   { href: "/enquiries", label: "Enquiries", icon: MessageSquareText },
-  { href: "/memberships", label: "Memberships", icon: BadgeCheck, primaryMobile: true },
+  { href: "/memberships", label: "Members", icon: BadgeCheck, primaryMobile: true },
+  { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/invoices", label: "Invoices", icon: ReceiptIndianRupee, primaryMobile: true },
   { href: "/automations", label: "Automations", icon: Workflow },
   { href: "/analytics", label: "Analytics", icon: ChartNoAxesCombined, permission: "analytics.read" },

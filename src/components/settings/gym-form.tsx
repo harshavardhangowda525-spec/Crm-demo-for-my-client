@@ -9,7 +9,7 @@ import { Checkbox, Field, Select } from "@/components/ui/field";
 import { saveGymSettings } from "@/server/settings";
 import type { GymSettings } from "@/server/queries";
 
-export function GymSettingsForm({ gym, canEdit, metaConfigured }: { gym: GymSettings; canEdit: boolean; metaConfigured: boolean }) {
+export function GymSettingsForm({ gym, canEdit, metaConfigured, aiConfigured }: { gym: GymSettings; canEdit: boolean; metaConfigured: boolean; aiConfigured: boolean }) {
   const router = useRouter();
   const [pending, start] = React.useTransition();
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -47,6 +47,7 @@ export function GymSettingsForm({ gym, canEdit, metaConfigured }: { gym: GymSett
             activationRule: s("activationRule"),
             renewalFollowUpDays: n("renewalFollowUpDays"),
             whatsappProvider: s("whatsappProvider"),
+            aiSummaryEnabled: f.get("aiSummaryEnabled") === "on",
           });
           if (!r.ok) {
             setErrors(r.fieldErrors ?? {});
@@ -145,6 +146,20 @@ export function GymSettingsForm({ gym, canEdit, metaConfigured }: { gym: GymSett
             </Select>
           </Field>
           <p className="self-end pb-1 text-xs text-muted">With the Cloud API, members also get a one-time WhatsApp code when opening their portal link.</p>
+        </Section>
+        <Section title="AI assistant (optional)">
+          <div className="sm:col-span-2">
+            <Checkbox
+              name="aiSummaryEnabled"
+              defaultChecked={gym.ai_summary_enabled}
+              label="Show “Summarise this customer” on profiles"
+              description={
+                aiConfigured
+                  ? "Writes a 3-line summary from notes and history. Never used for prices, dates, pauses or invoices."
+                  : "Needs an Anthropic API key (ANTHROPIC_API_KEY) on the server first."
+              }
+            />
+          </div>
         </Section>
       </fieldset>
       {canEdit ? (

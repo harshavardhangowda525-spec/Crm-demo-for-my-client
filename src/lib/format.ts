@@ -137,6 +137,12 @@ export const MESSAGE_PURPOSE = {
   expiry_reminder: "Expiry reminder",
   pause_confirmation: "Pause confirmation",
   renewal_follow_up: "Renewal follow-up",
+  enquiry_thanks: "Enquiry thank-you",
+  birthday: "Birthday wishes",
+  anniversary: "Membership anniversary",
+  win_back: "Win-back",
+  owner_daily_briefing: "Morning briefing",
+  owner_evening_summary: "Evening summary",
   portal_link: "Member portal link",
   portal_otp: "Portal login code",
 } as const;

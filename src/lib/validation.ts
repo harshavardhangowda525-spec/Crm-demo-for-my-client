@@ -174,6 +174,7 @@ export const gymSettingsSchema = z.object({
   activationRule: z.enum(["full_payment", "any_payment", "immediate"]),
   renewalFollowUpDays: z.number().int().min(1).max(60),
   whatsappProvider: z.enum(["mock", "meta_cloud"]),
+  aiSummaryEnabled: z.boolean().default(false),
 });
 
 export const staffInviteSchema = z.object({

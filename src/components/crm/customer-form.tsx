@@ -108,9 +108,6 @@ export function CustomerCreateForm({
             }}
           />
         </Field>
-        <Field label="Email (optional)" htmlFor="email" error={errors.email}>
-          <Input id="email" name="email" type="email" inputMode="email" aria-invalid={!!errors.email} />
-        </Field>
         <Field label="Interested plan" htmlFor="interestedPlanId" hint={lookups.plans.length ? undefined : "Add plans in Settings → Plans"}>
           <Select id="interestedPlanId" name="interestedPlanId" defaultValue="">
             <option value="">Not decided</option>
@@ -130,9 +127,6 @@ export function CustomerCreateForm({
             ))}
           </Select>
         </Field>
-        <Field label="Enquiry date" htmlFor="enquiryDate">
-          <Input id="enquiryDate" name="enquiryDate" type="date" defaultValue={today} max={today} />
-        </Field>
         <Field label="Status" htmlFor="status">
           <Select id="status" name="status" defaultValue="interested">
             <option value="new">New enquiry</option>
@@ -143,6 +137,17 @@ export function CustomerCreateForm({
         </Field>
         <Field label="Follow-up date" htmlFor="followUpDate" error={errors.followUpDate}>
           <Input id="followUpDate" name="followUpDate" type="date" min={today} defaultValue={addDaysISO(today, 3)} />
+        </Field>
+        <details className="group sm:col-span-2">
+          <summary className="focus-ring flex h-11 cursor-pointer list-none items-center gap-2 rounded-xl px-1 text-sm font-medium text-cyan">
+            <span className="transition-transform group-open:rotate-90">›</span> More details (email, birthday, assigned staff…)
+          </summary>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <Field label="Email (optional)" htmlFor="email" error={errors.email}>
+          <Input id="email" name="email" type="email" inputMode="email" aria-invalid={!!errors.email} />
+        </Field>
+        <Field label="Enquiry date" htmlFor="enquiryDate">
+          <Input id="enquiryDate" name="enquiryDate" type="date" defaultValue={today} max={today} />
         </Field>
         <Field label="Assigned staff" htmlFor="assignedStaffId">
           <Select id="assignedStaffId" name="assignedStaffId" defaultValue={lookups.currentStaffId}>
@@ -156,7 +161,7 @@ export function CustomerCreateForm({
               ))}
           </Select>
         </Field>
-        <Field label="Date of birth (optional)" htmlFor="dateOfBirth">
+        <Field label="Date of birth (for birthday wishes)" htmlFor="dateOfBirth">
           <Input id="dateOfBirth" name="dateOfBirth" type="date" max={today} />
         </Field>
         <Field label="Gender (optional)" htmlFor="gender">
@@ -168,6 +173,8 @@ export function CustomerCreateForm({
             <option value="prefer_not_to_say">Prefer not to say</option>
           </Select>
         </Field>
+          </div>
+        </details>
         <Field label="Notes" htmlFor="notes" className="sm:col-span-2">
           <Textarea id="notes" name="notes" placeholder="e.g. Asked about personal training and evening availability." maxLength={4000} />
         </Field>

@@ -36,6 +36,7 @@ export async function saveGymSettings(input: unknown): Promise<ActionResult<null
         activation_rule: v.activationRule,
         renewal_follow_up_days: v.renewalFollowUpDays,
         whatsapp_provider: v.whatsappProvider,
+        ai_summary_enabled: v.aiSummaryEnabled,
       })
       .eq("id", staff.gymId);
     if (error) return fail(dbError(error));

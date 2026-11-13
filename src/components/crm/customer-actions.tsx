@@ -14,6 +14,10 @@ import { ENQUIRY_SOURCES, FOLLOW_UP_KINDS, FOLLOW_UP_OUTCOMES, addDaysISO, today
 import { ActivateMembershipForm, type ActivationContext } from "@/components/membership/activate-form";
 import { PauseForm, type PausableMembership } from "@/components/membership/pause-form";
 import type { PlanOption, StaffOption } from "@/server/queries";
+import { setCustomerTags } from "@/server/memory";
+import { TagPicker, type TagOption } from "@/components/memory/tag-picker";
+import { VoiceInput } from "@/components/memory/voice-input";
+import { cn } from "@/lib/utils";
 
 type Customer = {
   id: string;
@@ -44,7 +48,11 @@ export function CustomerActions({
   activation,
   pausable,
   canCancel,
+  tags = [],
+  selectedTagIds = [],
 }: {
+  tags?: TagOption[];
+  selectedTagIds?: string[];
   customer: Customer;
   enquiry: OpenEnquiry;
   plans: PlanOption[];
@@ -167,69 +175,19 @@ export function CustomerActions({
       </Sheet>
 
       {enquiry && (
-        <Sheet open={open === "follow-up"} onOpenChange={(o) => !o && close()} title="Update enquiry" description="Log the follow-up and set what happens next.">
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              const s = (k: string) => String(f.get(k) ?? "");
-              run(
-                () =>
-                  logFollowUp({
-                    enquiryId: enquiry.id,
-                    kind: s("kind"),
-                    outcome: s("outcome"),
-                    body: s("body"),
-                    nextFollowUpDate: s("next"),
-                    newStatus: s("status"),
-                  }),
-                "Follow-up logged",
-              );
+        <Sheet open={open === "follow-up"} onOpenChange={(o) => !o && close()} title="Log follow-up" description="Tap what happened — typing is optional.">
+          <FollowUpForm
+            enquiry={enquiry}
+            tags={tags}
+            selectedTagIds={selectedTagIds}
+            customerId={customer.id}
+            onDone={() => {
+              close();
+              router.refresh();
             }}
-          >
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="How" htmlFor="kind">
-                <Select id="kind" name="kind" defaultValue="follow_up_call">
-                  {Object.entries(FOLLOW_UP_KINDS).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Outcome" htmlFor="outcome">
-                <Select id="outcome" name="outcome" defaultValue="reached">
-                  {Object.entries(FOLLOW_UP_OUTCOMES).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
-            <Field label="Summary" htmlFor="body">
-              <Textarea id="body" name="body" required maxLength={4000} placeholder="e.g. Will join after salary on the 1st." />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Enquiry status" htmlFor="status">
-                <Select id="status" name="status" defaultValue={enquiry.status}>
-                  <option value="new">New enquiry</option>
-                  <option value="follow_up_pending">Follow-up pending</option>
-                  <option value="interested">Interested</option>
-                  <option value="not_interested">Not interested</option>
-                </Select>
-              </Field>
-              <Field label="Next follow-up" htmlFor="next">
-                <Input id="next" name="next" type="date" min={today} defaultValue={addDaysISO(today, 3)} />
-              </Field>
-            </div>
-            <Button type="submit" className="w-full" loading={pending}>
-              Save follow-up
-            </Button>
-            <div className="divider-metal" />
-            <EnquiryQuickEdit enquiry={enquiry} plans={plans} staff={staff} onDone={close} />
-          </form>
+          />
+          <div className="divider-metal my-5" />
+          <EnquiryQuickEdit enquiry={enquiry} plans={plans} staff={staff} onDone={close} />
         </Sheet>
       )}
 
@@ -432,3 +390,116 @@ function EnquiryQuickEdit({
     </div>
   );
 }
+
+const OUTCOME_CHIPS: { outcome: keyof typeof FOLLOW_UP_OUTCOMES; label: string; status: string; days: number | null; text: string }[] = [
+  { outcome: "interested", label: "Interested 👍", status: "interested", days: 3, text: "Interested, will decide soon." },
+  { outcome: "call_back", label: "Call back later", status: "follow_up_pending", days: 2, text: "Asked us to call back." },
+  { outcome: "no_answer", label: "No answer", status: "follow_up_pending", days: 1, text: "Did not answer." },
+  { outcome: "reached", label: "Spoke, thinking", status: "follow_up_pending", days: 5, text: "Spoke with customer; still thinking." },
+  { outcome: "not_interested", label: "Not interested", status: "not_interested", days: null, text: "Not interested for now." },
+];
+
+function FollowUpForm({
+  enquiry,
+  tags,
+  selectedTagIds,
+  customerId,
+  onDone,
+}: {
+  enquiry: NonNullable<OpenEnquiry>;
+  tags: TagOption[];
+  selectedTagIds: string[];
+  customerId: string;
+  onDone: () => void;
+}) {
+  const today = todayISO();
+  const [kind, setKind] = React.useState<keyof typeof FOLLOW_UP_KINDS>("follow_up_call");
+  const [chip, setChip] = React.useState(OUTCOME_CHIPS[0]);
+  const [body, setBody] = React.useState("");
+  const [status, setStatus] = React.useState(enquiry.status === "new" ? "interested" : enquiry.status);
+  const [next, setNext] = React.useState(addDaysISO(today, 3));
+  const [selected, setSelected] = React.useState(selectedTagIds);
+  const [pending, start] = React.useTransition();
+
+  const pick = (c: (typeof OUTCOME_CHIPS)[number]) => {
+    setChip(c);
+    setStatus(c.status);
+    setNext(c.days ? addDaysISO(today, c.days) : "");
+  };
+
+  return (
+    <form
+      className="space-y-5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        start(async () => {
+          const r = await logFollowUp({
+            enquiryId: enquiry.id,
+            kind,
+            outcome: chip.outcome,
+            body: body.trim() || chip.text,
+            nextFollowUpDate: status === "not_interested" ? "" : next,
+            newStatus: status,
+          });
+          if (!r.ok) return void toast.error(r.error);
+          const changed = selected.length !== selectedTagIds.length || selected.some((t) => !selectedTagIds.includes(t));
+          if (changed) {
+            const t = await setCustomerTags(customerId, selected);
+            if (!t.ok) toast.error(t.error);
+          }
+          toast.success("Follow-up saved");
+          onDone();
+        });
+      }}
+    >
+      <div className="flex gap-2">
+        {Object.entries(FOLLOW_UP_KINDS).map(([k, v]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setKind(k as keyof typeof FOLLOW_UP_KINDS)}
+            className={cn(chipCls, kind === k && chipOn)}
+            aria-pressed={kind === k}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+      <div>
+        <p className="mb-2 text-xs font-medium text-muted">What happened?</p>
+        <div className="flex flex-wrap gap-2">
+          {OUTCOME_CHIPS.map((c) => (
+            <button key={c.outcome} type="button" onClick={() => pick(c)} className={cn(chipCls, chip.outcome === c.outcome && chipOn)} aria-pressed={chip.outcome === c.outcome}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Optional details — default: "${chip.text}"`} maxLength={4000} className="min-h-20" aria-label="Follow-up details" />
+        <VoiceInput onText={(t) => setBody((b) => (b ? b + " " : "") + t)} />
+      </div>
+      {tags.length > 0 && <TagPicker tags={tags} selected={selected} onChange={setSelected} />}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Enquiry status" htmlFor="fstatus">
+          <Select id="fstatus" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="new">New enquiry</option>
+            <option value="follow_up_pending">Follow-up pending</option>
+            <option value="interested">Interested</option>
+            <option value="not_interested">Not interested</option>
+          </Select>
+        </Field>
+        <Field label="Next follow-up" htmlFor="fnext">
+          <Input id="fnext" type="date" min={today} value={next} onChange={(e) => setNext(e.target.value)} disabled={status === "not_interested"} />
+        </Field>
+      </div>
+      <Button type="submit" size="lg" className="w-full" loading={pending}>
+        Save follow-up
+      </Button>
+    </form>
+  );
+}
+
+const chipCls =
+  "focus-ring inline-flex h-10 items-center rounded-full px-3.5 text-[13px] font-medium text-muted shadow-[inset_0_0_0_1px_var(--color-line-strong)] hover:text-fg";
+const chipOn = "bg-lime/12 text-lime shadow-[inset_0_0_0_1px_rgb(198_255_69/0.35)]";

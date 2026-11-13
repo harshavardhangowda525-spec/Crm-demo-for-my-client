@@ -3,7 +3,10 @@
 Mobile-first CRM, membership and WhatsApp-automation platform for Muscle House gym.
 Built by Infinity Web & Apps.
 
-**Status:** Phase 1 (foundation) complete — see [`docs/CHECKLIST.md`](docs/CHECKLIST.md).
+**Status:** Phases 1–6 plus the Member Memory & Owner Reminders upgrade — see [`docs/CHECKLIST.md`](docs/CHECKLIST.md).
+
+- Daily use: [`docs/OWNER_GUIDE.md`](docs/OWNER_GUIDE.md)
+- WhatsApp templates for Meta approval: [`docs/WHATSAPP_TEMPLATES.md`](docs/WHATSAPP_TEMPLATES.md)
 
 ## Stack
 Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Radix primitives · Motion · Lucide · Recharts
@@ -47,6 +50,7 @@ cp .env.example .env.local   # fill in Supabase URL + keys
 |---|---|---|
 | Supabase project | Everything | — |
 | Meta WhatsApp Business Platform (phone number ID, access token, app secret, approved templates) | Real WhatsApp messages & portal OTP | Mock provider; messages clearly marked **SIMULATED** |
-| Vercel | Hosting + scheduled jobs | Run locally |
+| Render | Hosting (free plan sleeps after 15 min idle) | Run locally |
+| Anthropic API key (`ANTHROPIC_API_KEY`) | Optional "Summarise this customer" | Button hidden; everything else works |
 
 GST: rate and registration details are configured per gym in Settings. The 18% default is illustrative — confirm the applicable treatment with the gym's accountant.

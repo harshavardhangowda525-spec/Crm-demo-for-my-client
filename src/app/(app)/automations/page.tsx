@@ -1,4 +1,4 @@
-import { BadgeCheck, CalendarClock, CirclePause, Clock3, FileText, RefreshCw, Workflow } from "lucide-react";
+import { BadgeCheck, CakeSlice, CalendarClock, CirclePause, Clock3, FileText, HeartHandshake, MoonStar, PartyPopper, RefreshCw, Sunrise, UserRoundX, Workflow } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
@@ -24,6 +24,12 @@ const RULES = [
   { key: "expiry_reminder", title: "Expiry reminder", icon: Clock3, trigger: "Daily at 9:00 AM — days before expiry are set in Settings." },
   { key: "pause_confirmation", title: "Pause confirmation", icon: CirclePause, trigger: "When a pause is approved, with days used, days left and the new expiry." },
   { key: "renewal_follow_up", title: "Renewal follow-up", icon: RefreshCw, trigger: "Daily — a few days after a membership expires without renewal." },
+  { key: "enquiry_thanks", title: "Enquiry thank-you", icon: HeartHandshake, trigger: "Instantly when an enquiry is saved for a customer who opted in." },
+  { key: "birthday", title: "Birthday wishes", icon: CakeSlice, trigger: "Daily at 9:00 AM for customers whose birthday is today." },
+  { key: "anniversary", title: "Membership anniversary", icon: PartyPopper, trigger: "Daily — on the yearly anniversary of a current member's first membership." },
+  { key: "win_back", title: "We haven't heard from you", icon: UserRoundX, trigger: "14 days after a membership expires without renewal." },
+  { key: "owner_daily_briefing", title: "Morning briefing (to staff)", icon: Sunrise, trigger: "Each staff member's chosen time — today's follow-ups, renewals, dues and birthdays." },
+  { key: "owner_evening_summary", title: "Evening summary (to staff)", icon: MoonStar, trigger: "Optional, each staff member's chosen time — what was done and what slipped." },
 ] as const;
 
 const STATUS_VIEWS = [

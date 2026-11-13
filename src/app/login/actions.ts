@@ -14,7 +14,7 @@ export type SignInState = { error?: string; fieldErrors?: Partial<Record<"email"
 
 /** Only allow same-origin relative redirects to avoid open-redirect abuse. */
 function safeNext(next: string | undefined) {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/";
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/today";
   return next;
 }
 

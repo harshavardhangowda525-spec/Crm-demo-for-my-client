@@ -32,12 +32,12 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.search = path === "/" ? "" : `?next=${encodeURIComponent(path)}`;
+    url.search = path === "/" || path === "/today" ? "" : `?next=${encodeURIComponent(path)}`;
     return NextResponse.redirect(url);
   }
   if (user && path === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/today";
     url.search = "";
     return NextResponse.redirect(url);
   }

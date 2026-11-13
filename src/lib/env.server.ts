@@ -12,6 +12,9 @@ const serverSchema = z.object({
   // Shared with the database (private.app_secrets 'dispatch'): authenticates
   // the scheduler → app calls and the app → dispatcher RPCs.
   CRON_SECRET: z.string().min(32).optional(),
+  // Optional: enables the "Summarise this customer" button (also needs the
+  // gym-level AI summary switch in Settings).
+  ANTHROPIC_API_KEY: z.string().min(20).optional(),
   WHATSAPP_PROVIDER: z.enum(["mock", "meta_cloud"]).default("mock"),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   WHATSAPP_ACCESS_TOKEN: z.string().optional(),

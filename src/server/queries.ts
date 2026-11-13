@@ -37,6 +37,7 @@ export type GymSettings = {
   activation_rule: "full_payment" | "any_payment" | "immediate";
   renewal_follow_up_days: number;
   whatsapp_provider: "mock" | "meta_cloud";
+  ai_summary_enabled: boolean;
   timezone: string;
 };
 

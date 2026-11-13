@@ -9,6 +9,7 @@ import { Badge, LIFECYCLE_TONE } from "@/components/ui/badge";
 import { formatDate, LIFECYCLE, label } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
+import { TagChips } from "@/components/memory/tag-chips";
 
 export type SearchResult = {
   id: string;
@@ -24,6 +25,9 @@ export type SearchResult = {
   membership_plan_name: string | null;
   membership_end_date: string | null;
   follow_up_date: string | null;
+  tags: { label: string; kind: string }[];
+  promises: string[];
+  last_note: { body: string; created_at: string } | null;
 };
 
 function useCustomerSearch(query: string) {
@@ -176,7 +180,17 @@ export function CustomerSearch({
                     <dd className="text-fg">{formatDate(r.follow_up_date)}</dd>
                   </div>
                 </dl>
-                {r.notes && <p className="mt-2.5 line-clamp-2 text-[13px] text-muted">“{r.notes}”</p>}
+                {r.tags.length > 0 && <TagChips tags={r.tags} className="mt-2.5" max={5} />}
+                {r.promises.map((p) => (
+                  <p key={p} className="mt-2 text-[13px] text-lime">Promised: {p}</p>
+                ))}
+                {r.last_note ? (
+                  <p className="mt-2 line-clamp-2 text-[13px] text-muted">
+                    <span className="text-subtle">Last talk ({formatDate(r.last_note.created_at)}):</span> “{r.last_note.body}”
+                  </p>
+                ) : (
+                  r.notes && <p className="mt-2.5 line-clamp-2 text-[13px] text-muted">“{r.notes}”</p>
+                )}
               </button>
               <div className="mt-3 flex flex-wrap gap-2">
                 <ActionLink href={`/customers/${r.id}`} icon={ArrowRight} onClick={onNavigate}>

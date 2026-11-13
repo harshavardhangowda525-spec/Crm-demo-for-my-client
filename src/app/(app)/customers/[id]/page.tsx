@@ -13,6 +13,11 @@ import { PauseMeter } from "@/components/membership/pause-meter";
 import { addDaysISO, daysBetween, ENQUIRY_SOURCES, formatDate, formatINR, label, PAYMENT_STATUS, todayISO } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { getGym, getPlans, getStaffDirectory } from "@/server/queries";
+import { MemoryCard } from "@/components/memory/memory-card";
+import { RenewalPanel } from "@/components/renewal/renewal-panel";
+import { AddReminderButton } from "@/components/today/add-reminder";
+import type { RenewalStats } from "@/lib/renewal";
+import type { TagOption } from "@/components/memory/tag-picker";
 
 export const metadata = { title: "Customer" };
 
@@ -55,6 +60,19 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       getStaffDirectory(),
     ]);
   if (!c) notFound();
+
+  const [{ data: tagCatalogue }, { data: tagLinks }, { data: promises }, { data: lastNote }, { data: statsRows }, { data: ai }] = await Promise.all([
+    supabase.from("customer_tags").select("id, label, kind").eq("gym_id", staff.gymId).eq("active", true).order("kind").order("sort_order"),
+    supabase.from("customer_tag_links").select("tag_id, customer_tags(id, label, kind)").eq("customer_id", id),
+    supabase.from("customer_promises").select("id, body, due_date, status").eq("customer_id", id).order("due_date", { ascending: true, nullsFirst: false }),
+    supabase.from("enquiry_notes").select("body, created_at, kind, author_id").eq("customer_id", id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.rpc("renewal_stats", { p_customer_ids: [id] }),
+    supabase.from("customers").select("preferred_contact_time, preferred_language, ai_summary, ai_summary_at").eq("id", id).single(),
+  ]);
+  const linked = ((tagLinks ?? []) as unknown as { tag_id: string; customer_tags: TagOption }[]).map((l) => l.customer_tags);
+  // Inactive tags still linked to this customer stay visible.
+  const tagOptions: TagOption[] = [...((tagCatalogue ?? []) as TagOption[]), ...linked.filter((t) => !(tagCatalogue ?? []).some((x) => x.id === t.id))];
+  const stats = ((statsRows ?? []) as RenewalStats[])[0] ?? null;
 
   const staffName = new Map(staffList.map((s) => [s.user_id, s.full_name]));
   const timeline: TimelineEvent[] = (events ?? []).map((e) => ({
@@ -115,6 +133,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
         <div className="divider-metal my-5" />
+        <div className="mb-2 flex flex-wrap gap-2">
+          <AddReminderButton customerId={c.id} customerName={c.full_name} staff={staffList} variant="outline" />
+        </div>
         <CustomerActions
           customer={{
             id: c.id,
@@ -141,6 +162,8 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           plans={plans}
           staff={staffList}
           canCancel={can(staff.role, "memberships.cancel")}
+          tags={tagOptions}
+          selectedTagIds={linked.map((t) => t.id)}
           activation={{
             customerId: c.id,
             customerName: c.full_name,
@@ -171,6 +194,24 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
 
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <div className="space-y-6">
+          <MemoryCard
+            data={{
+              customerId: c.id,
+              customerName: c.full_name,
+              tags: tagOptions,
+              selectedTagIds: linked.map((t) => t.id),
+              promises: promises ?? [],
+              contactTime: ai?.preferred_contact_time ?? null,
+              language: ai?.preferred_language ?? null,
+              lastNote: lastNote
+                ? { body: lastNote.body, at: lastNote.created_at, kind: lastNote.kind, by: (lastNote.author_id && staffName.get(lastNote.author_id)) || "Staff" }
+                : null,
+              aiEnabled: gym.ai_summary_enabled,
+              aiSummary: ai?.ai_summary ?? null,
+              aiSummaryAt: ai?.ai_summary_at ?? null,
+            }}
+          />
+          {stats && <RenewalPanel stats={stats} plans={plans} today={today} customerId={c.id} />}
           {live && (
             <GlassCard className="p-5 md:p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">

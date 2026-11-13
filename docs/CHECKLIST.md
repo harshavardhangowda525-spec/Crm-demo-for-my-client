@@ -50,3 +50,17 @@ Legend: ✅ done & tested · 🟡 in progress · ⬜ not started · 🔒 blocked
 - ⬜ Demo seed (100 customers etc., `is_demo` flagged, purgeable)
 - ⬜ E2E demo workflow test, mobile checks
 - ⬜ Deployment + admin guide
+
+## Upgrade — Member Memory & Owner Reminders
+- ✅ Memory Card on profile + memory in search results: interest/objection tags, promises (with expiry), contact time & language, last conversation
+- ✅ One-tap follow-up logging: outcome chips, tag chips, voice dictation (Web Speech API, progressive)
+- ✅ Renewal intelligence: member since, renewals, lifetime paid, lateness, pauses, last plan; deterministic "Likely to drop" flags; upgrade hint with exact saving
+- ✅ Today page (default landing): follow-ups, promises, reminders, renewals (7 days), win-back (30 days), unpaid, birthdays, pause ends — Call / WhatsApp / Done / Snooze / Open
+- ✅ Staff reminders (tasks) from any profile or Today
+- ✅ Morning briefing + optional evening summary over WhatsApp (per-staff time, 1/day dedupe, test button)
+- ✅ Member moments: instant enquiry thank-you, birthday, anniversary, 14-day win-back
+- ✅ Optional AI summary (Claude Haiku 5.5), off by default, cached, never used for money/dates
+- ✅ Simplicity pass: Today first in navigation, optional fields under "More details", Settings → Reminders
+- ✅ Tests: 11 new SQL checks (57 total), renewal unit tests (55 total)
+- ⬜ Apply migrations 0007 + 0008 to Supabase (needs owner approval of the Supabase prompt)
+- 🔒 Real WhatsApp delivery — needs the Meta WhatsApp Business account (see docs/WHATSAPP_TEMPLATES.md)
