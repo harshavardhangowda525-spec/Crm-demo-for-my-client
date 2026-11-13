@@ -4,7 +4,38 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "motion/react";
-import { Pencil, type LucideIcon } from "lucide-react";
+import {
+  BadgeCheck,
+  CakeSlice,
+  CalendarClock,
+  CirclePause,
+  Clock3,
+  FileText,
+  HeartHandshake,
+  MoonStar,
+  PartyPopper,
+  Pencil,
+  RefreshCw,
+  Sunrise,
+  UserRoundX,
+  type LucideIcon,
+} from "lucide-react";
+
+/** Icons by rule key — components cannot be passed from server to client components. */
+const RULE_ICONS: Record<string, LucideIcon> = {
+  enquiry_follow_up: CalendarClock,
+  membership_confirmation: BadgeCheck,
+  invoice_delivery: FileText,
+  expiry_reminder: Clock3,
+  pause_confirmation: CirclePause,
+  renewal_follow_up: RefreshCw,
+  enquiry_thanks: HeartHandshake,
+  birthday: CakeSlice,
+  anniversary: PartyPopper,
+  win_back: UserRoundX,
+  owner_daily_briefing: Sunrise,
+  owner_evening_summary: MoonStar,
+};
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +48,7 @@ export function RuleCard({
   rule,
   title,
   trigger,
-  icon: Icon,
+  ruleKey,
   stats,
   canManage,
   index,
@@ -25,12 +56,13 @@ export function RuleCard({
   rule: { id: string; enabled: boolean; template_name: string; body: string };
   title: string;
   trigger: string;
-  icon: LucideIcon;
+  ruleKey: string;
   stats: { success: number; failed: number; skipped: number; last: string | null };
   canManage: boolean;
   index: number;
 }) {
   const router = useRouter();
+  const Icon = RULE_ICONS[ruleKey] ?? FileText;
   const [enabled, setEnabled] = React.useState(rule.enabled);
   const [editing, setEditing] = React.useState(false);
   const [pending, start] = React.useTransition();

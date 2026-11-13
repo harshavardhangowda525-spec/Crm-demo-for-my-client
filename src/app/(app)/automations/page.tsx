@@ -1,4 +1,4 @@
-import { BadgeCheck, CakeSlice, CalendarClock, CirclePause, Clock3, FileText, HeartHandshake, MoonStar, PartyPopper, RefreshCw, Sunrise, UserRoundX, Workflow } from "lucide-react";
+import { Workflow } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
@@ -18,18 +18,18 @@ export const metadata = { title: "Automations" };
 const PAGE_SIZE = 25;
 
 const RULES = [
-  { key: "enquiry_follow_up", title: "Enquiry follow-up", icon: CalendarClock, trigger: "Daily at 9:00 AM for open enquiries whose follow-up date is today." },
-  { key: "membership_confirmation", title: "Membership confirmation", icon: BadgeCheck, trigger: "When a membership becomes active. Includes the secure member-portal link." },
-  { key: "invoice_delivery", title: "Invoice delivery", icon: FileText, trigger: "When an invoice is generated. Attaches the PDF via a signed, expiring link." },
-  { key: "expiry_reminder", title: "Expiry reminder", icon: Clock3, trigger: "Daily at 9:00 AM — days before expiry are set in Settings." },
-  { key: "pause_confirmation", title: "Pause confirmation", icon: CirclePause, trigger: "When a pause is approved, with days used, days left and the new expiry." },
-  { key: "renewal_follow_up", title: "Renewal follow-up", icon: RefreshCw, trigger: "Daily — a few days after a membership expires without renewal." },
-  { key: "enquiry_thanks", title: "Enquiry thank-you", icon: HeartHandshake, trigger: "Instantly when an enquiry is saved for a customer who opted in." },
-  { key: "birthday", title: "Birthday wishes", icon: CakeSlice, trigger: "Daily at 9:00 AM for customers whose birthday is today." },
-  { key: "anniversary", title: "Membership anniversary", icon: PartyPopper, trigger: "Daily — on the yearly anniversary of a current member's first membership." },
-  { key: "win_back", title: "We haven't heard from you", icon: UserRoundX, trigger: "14 days after a membership expires without renewal." },
-  { key: "owner_daily_briefing", title: "Morning briefing (to staff)", icon: Sunrise, trigger: "Each staff member's chosen time — today's follow-ups, renewals, dues and birthdays." },
-  { key: "owner_evening_summary", title: "Evening summary (to staff)", icon: MoonStar, trigger: "Optional, each staff member's chosen time — what was done and what slipped." },
+  { key: "enquiry_follow_up", title: "Enquiry follow-up", trigger: "Daily at 9:00 AM for open enquiries whose follow-up date is today." },
+  { key: "membership_confirmation", title: "Membership confirmation", trigger: "When a membership becomes active. Includes the secure member-portal link." },
+  { key: "invoice_delivery", title: "Invoice delivery", trigger: "When an invoice is generated. Attaches the PDF via a signed, expiring link." },
+  { key: "expiry_reminder", title: "Expiry reminder", trigger: "Daily at 9:00 AM — days before expiry are set in Settings." },
+  { key: "pause_confirmation", title: "Pause confirmation", trigger: "When a pause is approved, with days used, days left and the new expiry." },
+  { key: "renewal_follow_up", title: "Renewal follow-up", trigger: "Daily — a few days after a membership expires without renewal." },
+  { key: "enquiry_thanks", title: "Enquiry thank-you", trigger: "Instantly when an enquiry is saved for a customer who opted in." },
+  { key: "birthday", title: "Birthday wishes", trigger: "Daily at 9:00 AM for customers whose birthday is today." },
+  { key: "anniversary", title: "Membership anniversary", trigger: "Daily — on the yearly anniversary of a current member's first membership." },
+  { key: "win_back", title: "We haven't heard from you", trigger: "14 days after a membership expires without renewal." },
+  { key: "owner_daily_briefing", title: "Morning briefing (to staff)", trigger: "Each staff member's chosen time — today's follow-ups, renewals, dues and birthdays." },
+  { key: "owner_evening_summary", title: "Evening summary (to staff)", trigger: "Optional, each staff member's chosen time — what was done and what slipped." },
 ] as const;
 
 const STATUS_VIEWS = [
@@ -105,7 +105,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
               index={i}
               title={r.title}
               trigger={r.trigger}
-              icon={r.icon}
+              ruleKey={r.key}
               canManage={canManage}
               stats={stats[i]}
               rule={{ id: row.id, enabled: row.enabled, template_name: row.template_name, body: String((row.config as { body?: string })?.body ?? "") }}
