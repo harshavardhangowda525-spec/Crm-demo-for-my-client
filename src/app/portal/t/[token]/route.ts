@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { publicEnv } from "@/lib/env";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { PORTAL_COOKIE, PORTAL_PENDING_COOKIE, portalCookieOptions } from "@/lib/portal";
 import { dispatchDueMessages } from "@/lib/whatsapp/dispatcher";
@@ -9,10 +10,11 @@ export const dynamic = "force-dynamic";
  * Exchanges the secret link for a session (or sends a WhatsApp code first),
  * then redirects so the token never stays in the address bar or history.
  */
-export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const base = req.nextUrl.clone();
-  base.search = "";
+  // Build redirects from the public site URL: behind Render's proxy the
+  // request URL is the internal bind address (0.0.0.0:10000).
+  const base = new URL(publicEnv.NEXT_PUBLIC_APP_URL);
   if (!/^[0-9a-f]{64}$/.test(token)) {
     base.pathname = "/portal";
     base.searchParams.set("error", "invalid");
