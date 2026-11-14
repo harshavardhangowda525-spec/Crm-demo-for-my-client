@@ -23,7 +23,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     supabase.from("payments").select("id, amount_paise, method, reference, paid_at").eq("invoice_id", id).order("paid_at"),
     supabase
       .from("whatsapp_messages")
-      .select("id, status, simulated, last_error, provider_message_id, created_at, sent_at, delivered_at")
+      .select("id, status, simulated, last_error, delivery_note, provider_message_id, created_at, sent_at, delivered_at")
       .eq("related_entity_type", "invoice")
       .eq("related_entity_id", id)
       .order("created_at", { ascending: false }),
@@ -140,6 +140,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                       <span className="text-xs text-muted">{formatDateTime(m.sent_at ?? m.created_at)}</span>
                     </div>
                     {m.simulated && <p className="mt-1.5 text-xs text-muted">Simulated — WhatsApp is not connected yet, so nothing was delivered.</p>}
+                    {m.delivery_note && <p className="mt-1.5 text-xs text-warning">{m.delivery_note} — the PDF was sent as a document.</p>}
                     {m.last_error && <p className="mt-1.5 text-xs text-danger">{m.last_error}</p>}
                     {m.status === "failed" && can(staff.role, "messages.retry") && <RetryMessageButton messageId={m.id} className="mt-2" />}
                   </li>

@@ -20,6 +20,9 @@ const serverSchema = z.object({
   WHATSAPP_ACCESS_TOKEN: z.string().optional(),
   WHATSAPP_APP_SECRET: z.string().optional(),
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
+  // When a template is not approved yet, resend the same rendered message as
+  // plain text (works inside WhatsApp's 24-hour customer-service window).
+  WHATSAPP_TEXT_FALLBACK: z.enum(["on", "off"]).default("on"),
 });
 
 let cached: z.infer<typeof serverSchema> | undefined;

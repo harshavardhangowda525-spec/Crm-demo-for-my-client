@@ -13,7 +13,8 @@ export type OutgoingMessage = {
 };
 
 export type SendResult =
-  | { outcome: "sent"; providerMessageId: string }
+  /** `note` explains how it was sent when that differs from normal (e.g. text fallback). */
+  | { outcome: "sent"; providerMessageId: string; note?: string }
   | { outcome: "simulated" }
   | { outcome: "failed"; error: string; retryable: boolean };
 

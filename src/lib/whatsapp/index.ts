@@ -13,7 +13,9 @@ export function providerFor(messageProvider: string): WhatsAppProvider {
   if (messageProvider === "meta_cloud") {
     const env = serverEnv();
     if (env.WHATSAPP_PHONE_NUMBER_ID && env.WHATSAPP_ACCESS_TOKEN) {
-      return new MetaCloudProvider(env.WHATSAPP_PHONE_NUMBER_ID, env.WHATSAPP_ACCESS_TOKEN);
+      return new MetaCloudProvider(env.WHATSAPP_PHONE_NUMBER_ID, env.WHATSAPP_ACCESS_TOKEN, {
+        textFallback: env.WHATSAPP_TEXT_FALLBACK === "on",
+      });
     }
     return {
       name: "meta_cloud",

@@ -229,6 +229,23 @@ begin
   raise notice 'ok: permanent provider errors fail immediately with the provider''s reason';
 end $$;
 
+-- text backup: a sent message records how it was delivered
+do $$ declare
+  s text := private.secret('dispatch');
+  mid uuid;
+begin
+  mid := private.queue_message('10000000-0000-0000-0000-0000000000c1', '20000000-0000-0000-0000-0000000000c1',
+    'renewal_follow_up', '["Rahul","Gym C","Monthly","01 Jan 2027"]', 'test:textfallback');
+  perform public.dispatch_claim(s, 10, mid);
+  perform public.dispatch_complete(s, mid, 'sent', 'wamid.text', null, 'Sent as text (template pending approval)');
+  if (select delivery_note from public.whatsapp_messages where id = mid) is distinct from 'Sent as text (template pending approval)'
+     or (select status from public.whatsapp_messages where id = mid) <> 'sent' then
+    raise exception 'delivery note not stored'; end if;
+  if (select detail from public.automation_executions where message_id = mid) not like 'Accepted by WhatsApp — Sent as text%' then
+    raise exception 'execution detail missing note'; end if;
+  raise notice 'ok: text-backup sends are marked on the message and the automation history';
+end $$;
+
 -- ---------------------------------------------------------------- portal
 do $$ declare
   tok text := encode(extensions.gen_random_bytes(32), 'hex');

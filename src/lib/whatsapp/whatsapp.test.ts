@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MockProvider } from "./mock";
-import { MetaCloudProvider } from "./meta";
+import { MetaCloudProvider, TEXT_FALLBACK_NOTE } from "./meta";
 
 const msg = { id: "m1", to: "+919876543210", templateName: "membership_confirmation", language: "en", params: ["Rahul"], bodyPreview: "Hi Rahul" };
 
@@ -47,5 +47,48 @@ describe("WhatsApp providers", () => {
       { type: "body", parameters: [{ type: "text", text: "482913" }] },
       { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: "482913" }] },
     ]);
+  });
+
+  describe("text backup when a template is not approved yet", () => {
+    const notApproved = () =>
+      new Response(JSON.stringify({ error: { message: "(#132001) Template name does not exist in the translation", code: 132001 } }), { status: 404 });
+
+    it("resends the rendered message as plain text and marks it", async () => {
+      const spy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(notApproved())
+        .mockResolvedValueOnce(new Response(JSON.stringify({ messages: [{ id: "wamid.text" }] })));
+      const r = await new MetaCloudProvider("123", "token", { textFallback: true }).send(msg);
+      expect(r).toEqual({ outcome: "sent", providerMessageId: "wamid.text", note: TEXT_FALLBACK_NOTE });
+      const body = JSON.parse(String((spy.mock.calls[1][1] as RequestInit).body));
+      expect(body).toMatchObject({ messaging_product: "whatsapp", to: "919876543210", type: "text", text: { body: "Hi Rahul" } });
+    });
+
+    it("sends invoices as a PDF document with the message as caption", async () => {
+      const spy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(notApproved())
+        .mockResolvedValueOnce(new Response(JSON.stringify({ messages: [{ id: "wamid.doc" }] })));
+      await new MetaCloudProvider("123", "token", { textFallback: true }).send({ ...msg, documentUrl: "https://x/doc.pdf", documentFilename: "invoice.pdf" });
+      const body = JSON.parse(String((spy.mock.calls[1][1] as RequestInit).body));
+      expect(body).toMatchObject({ type: "document", document: { link: "https://x/doc.pdf", filename: "invoice.pdf", caption: "Hi Rahul" } });
+    });
+
+    it("explains the 24-hour window when WhatsApp refuses the text", async () => {
+      vi.spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(notApproved())
+        .mockResolvedValueOnce(new Response(JSON.stringify({ error: { message: "Re-engagement message", code: 131047 } }), { status: 400 }));
+      const r = await new MetaCloudProvider("123", "token", { textFallback: true }).send(msg);
+      expect(r.outcome).toBe("failed");
+      expect(r.outcome === "failed" && !r.retryable && r.error.includes("24 hours")).toBe(true);
+    });
+
+    it("stays off unless enabled, and never applies to other errors", async () => {
+      const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(notApproved());
+      expect((await new MetaCloudProvider("123", "token").send(msg)).outcome).toBe("failed");
+      spy.mockResolvedValue(new Response(JSON.stringify({ error: { message: "Recipient not allowed", code: 131030 } }), { status: 400 }));
+      expect((await new MetaCloudProvider("123", "token", { textFallback: true }).send(msg)).outcome).toBe("failed");
+      expect(spy).toHaveBeenCalledTimes(2);
+    });
   });
 });

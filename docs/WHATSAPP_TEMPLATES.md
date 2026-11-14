@@ -27,3 +27,19 @@ Notes
 - Marketing templates are only sent to customers who agreed to WhatsApp updates (the consent tick box). Meta charges marketing messages at a higher rate than utility ones.
 - Staff briefings (11, 12) go to the WhatsApp number each staff member saves in **Settings → Reminders**.
 - Meta may re-categorise a template; that does not break anything in Gym OS.
+
+## Backup while templates are in review (text fallback)
+
+If Meta reports that a template is not approved yet (errors 132000–132016), the
+CRM resends **the same rendered message as plain text** (invoices go as the PDF
+document with the message as caption). These sends show the amber label
+"Sent as text (template pending approval)" in Automations → Execution history.
+
+WhatsApp only allows free-form messages within **24 hours of the recipient
+messaging the business number**. Before a demo, send "Hi" from the phone that
+should receive messages to the business number. Outside that window the message
+fails with a clear explanation instead of being retried.
+
+Turn it off with the Render env var `WHATSAPP_TEXT_FALLBACK=off` (default `on`).
+Once templates are approved, templates are used automatically; the backup only
+kicks in when a template can't be used.

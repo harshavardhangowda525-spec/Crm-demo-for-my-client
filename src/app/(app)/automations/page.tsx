@@ -67,7 +67,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
 
   let mq = supabase
     .from("whatsapp_messages")
-    .select("id, purpose, status, simulated, to_phone_e164, body_preview, last_error, attempts, created_at, customer_id, customers(full_name)", { count: "exact" })
+    .select("id, purpose, status, simulated, to_phone_e164, body_preview, last_error, delivery_note, attempts, created_at, customer_id, customers(full_name)", { count: "exact" })
     .eq("gym_id", staff.gymId);
   if (status !== "all") mq = mq.eq("status", status);
   if (rule) mq = mq.eq("purpose", rule);
@@ -137,6 +137,7 @@ export default async function AutomationsPage({ searchParams }: { searchParams: 
                       <p className="font-medium">{(m.customers as unknown as { full_name: string } | null)?.full_name ?? formatPhone(m.to_phone_e164)}</p>
                       <Badge tone={MESSAGE_TONE[m.status]}>{label(MESSAGE_STATUS, m.status)}</Badge>
                       <span className="text-xs text-muted">{label(MESSAGE_PURPOSE, m.purpose)}</span>
+                      {m.delivery_note && <Badge tone="amber">{m.delivery_note}</Badge>}
                     </div>
                     {m.body_preview && <p className="mt-1 line-clamp-2 text-[13px] text-muted">{m.body_preview}</p>}
                     {m.last_error && <p className="mt-1 text-xs text-danger">{m.last_error}</p>}

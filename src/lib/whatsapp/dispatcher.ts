@@ -60,6 +60,7 @@ export async function dispatchDueMessages(opts: { limit?: number; messageId?: st
       p_outcome: result.outcome === "failed" && !result.retryable ? "failed_permanent" : result.outcome,
       p_provider_message_id: result.outcome === "sent" ? result.providerMessageId : null,
       p_error: result.outcome === "failed" ? result.error : null,
+      p_note: result.outcome === "sent" ? (result.note ?? null) : null,
     });
     if (completeError) console.error("[dispatch] complete failed", m.id, completeError.message);
     summary[result.outcome === "sent" ? "sent" : result.outcome === "simulated" ? "simulated" : "failed"]++;
