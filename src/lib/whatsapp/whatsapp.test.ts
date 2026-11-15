@@ -91,4 +91,16 @@ describe("WhatsApp providers", () => {
       expect(spy).toHaveBeenCalledTimes(2);
     });
   });
+
+  it("resends an invoice without the PDF header when the approved template has none", async () => {
+    const spy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: { message: "header mismatch", code: 132000 } }), { status: 400 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ messages: [{ id: "wamid.nohdr" }] })));
+    const r = await new MetaCloudProvider("123", "token").send({ ...msg, documentUrl: "https://x/doc.pdf" });
+    expect(r).toEqual({ outcome: "sent", providerMessageId: "wamid.nohdr" });
+    const second = JSON.parse(String((spy.mock.calls[1][1] as RequestInit).body));
+    expect(second.type).toBe("template");
+    expect(second.template.components).toEqual([{ type: "body", parameters: [{ type: "text", text: "Rahul" }] }]);
+  });
 });

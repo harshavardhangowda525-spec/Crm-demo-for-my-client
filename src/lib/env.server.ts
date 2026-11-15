@@ -20,9 +20,10 @@ const serverSchema = z.object({
   WHATSAPP_ACCESS_TOKEN: z.string().optional(),
   WHATSAPP_APP_SECRET: z.string().optional(),
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
-  // When a template is not approved yet, resend the same rendered message as
-  // plain text (works inside WhatsApp's 24-hour customer-service window).
-  WHATSAPP_TEXT_FALLBACK: z.enum(["on", "off"]).default("on"),
+  // Emergency backup: when a template can't be used (e.g. paused by Meta), resend
+  // the same rendered message as plain text inside WhatsApp's 24-hour window.
+  // Off by default now that every template is approved.
+  WHATSAPP_TEXT_FALLBACK: z.enum(["on", "off"]).default("off"),
 });
 
 let cached: z.infer<typeof serverSchema> | undefined;

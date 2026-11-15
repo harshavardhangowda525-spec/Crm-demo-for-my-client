@@ -9,6 +9,9 @@ const GRAPH = "https://graph.facebook.com/v21.0";
  */
 export const TEMPLATE_UNAVAILABLE_CODES = new Set([132000, 132001, 132005, 132007, 132012, 132015, 132016]);
 
+/** Parameter count/format mismatch between the request and the approved template. */
+const PARAM_MISMATCH_CODES = new Set([132000, 132012]);
+
 /** Outside the 24-hour customer-service window, free-form messages are refused. */
 const OUTSIDE_WINDOW_CODES = new Set([131047]);
 
@@ -24,7 +27,7 @@ type GraphResponse = { messages?: { id: string }[]; error?: { message?: string; 
  * WHATSAPP_ACCESS_TOKEN; templates must be approved in Meta Business Manager
  * with the same names and parameter order as automation_rules.
  *
- * Backup: with `textFallback`, a message whose template is not approved yet is
+ * Backup (off by default since templates are approved): with `textFallback`, a message whose template is not approved yet is
  * resent as the same rendered text (invoices as a PDF document with the text
  * as caption). WhatsApp allows this only within 24 hours of the recipient's
  * last message to the business number.
@@ -69,9 +72,20 @@ export class MetaCloudProvider implements WhatsAppProvider {
       components.push({ type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: m.params[0] }] });
     }
 
-    const r = await this.post({ to, type: "template", template: { name: m.templateName, language: { code: m.language }, components } });
+    const template = (comps: unknown[]) => ({ to, type: "template", template: { name: m.templateName, language: { code: m.language }, components: comps } });
+    let r = await this.post(template(components));
     if ("networkError" in r) return { outcome: "failed", error: `Network error: ${r.networkError}`, retryable: true };
     if (r.status < 300 && r.body.messages?.[0]?.id) return { outcome: "sent", providerMessageId: r.body.messages[0].id };
+
+    // An approved template without a document header rejects the PDF attachment
+    // as a parameter mismatch: send it again without the header.
+    if (m.documentUrl && PARAM_MISMATCH_CODES.has(r.body.error?.code ?? -1)) {
+      const retry = await this.post(template(components.slice(1)));
+      if (!("networkError" in retry) && retry.status < 300 && retry.body.messages?.[0]?.id) {
+        return { outcome: "sent", providerMessageId: retry.body.messages[0].id };
+      }
+      if (!("networkError" in retry)) r = retry;
+    }
 
     const code = r.body.error?.code;
     if (this.opts.textFallback && code !== undefined && TEMPLATE_UNAVAILABLE_CODES.has(code) && m.bodyPreview) {
