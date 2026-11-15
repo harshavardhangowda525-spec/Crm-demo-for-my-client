@@ -48,7 +48,11 @@ export async function createCustomer(
     });
     if (error) return fail(dbError(error));
     const r = data as { status: "created" | "duplicate"; customer_id: string };
-    if (r.status === "created") refreshCrm(r.customer_id);
+    if (r.status === "created") {
+      // Send the instant enquiry thank-you now instead of waiting for the 5-minute run.
+      await dispatchDueMessages({ limit: 5 }).catch((e) => console.error("[dispatch]", e));
+      refreshCrm(r.customer_id);
+    }
     return ok({ customerId: r.customer_id, duplicate: r.status === "duplicate" });
   });
 }
@@ -154,6 +158,7 @@ export async function createEnquiry(input: unknown): Promise<ActionResult<null>>
         author_id: staff.userId,
       });
     }
+    await dispatchDueMessages({ limit: 5 }).catch((e) => console.error("[dispatch]", e));
     refreshCrm(v.customerId);
     return ok(null);
   });
