@@ -1,7 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { serverEnv } from "@/lib/env.server";
 import { hmacHex, safeEqual } from "@/lib/signing";
 import { createAnonClient } from "@/lib/supabase/anon";
+import { answerInbound, parseInbound, receiveInbound } from "@/lib/whatsapp/inbound";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,11 @@ export async function GET(req: NextRequest) {
 
 type StatusEvent = { id: string; status: string; errors?: { title?: string; message?: string }[] };
 
-/** Delivery status updates. Every request must carry Meta's HMAC signature. */
+/**
+ * Delivery status updates and incoming member messages. Every request must
+ * carry Meta's HMAC signature. Messages are stored before we answer Meta; the
+ * bot reply is sent right after the response so Meta never times out.
+ */
 export async function POST(req: NextRequest) {
   const env = serverEnv();
   if (!env.WHATSAPP_APP_SECRET || !env.CRON_SECRET) return new Response("Not configured", { status: 503 });
@@ -49,6 +54,10 @@ export async function POST(req: NextRequest) {
         });
       }
     }
+  }
+  for (const m of parseInbound(body as Parameters<typeof parseInbound>[0])) {
+    const r = await receiveInbound(m);
+    if (r) after(() => answerInbound(m, r).catch((e) => console.error("[inbox] reply failed", e)));
   }
   return NextResponse.json({ received: true });
 }

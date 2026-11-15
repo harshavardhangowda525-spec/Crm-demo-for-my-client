@@ -1,6 +1,6 @@
 import "server-only";
 import { serverEnv } from "@/lib/env.server";
-import { MetaCloudProvider } from "./meta";
+import { MetaCloudProvider, type TextResult } from "./meta";
 import { MockProvider } from "./mock";
 import type { WhatsAppProvider } from "./types";
 
@@ -25,6 +25,15 @@ export function providerFor(messageProvider: string): WhatsAppProvider {
     };
   }
   return new MockProvider();
+}
+
+/** Send a free-form WhatsApp text through the Cloud API (inbox replies). */
+export async function sendWhatsAppText(to: string, body: string): Promise<TextResult> {
+  const env = serverEnv();
+  if (!env.WHATSAPP_PHONE_NUMBER_ID || !env.WHATSAPP_ACCESS_TOKEN) {
+    return { ok: false, error: "WhatsApp Cloud API credentials are not configured" };
+  }
+  return new MetaCloudProvider(env.WHATSAPP_PHONE_NUMBER_ID, env.WHATSAPP_ACCESS_TOKEN).sendText(to, body);
 }
 
 export type { OutgoingMessage, SendResult, WhatsAppProvider } from "./types";

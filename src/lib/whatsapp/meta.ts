@@ -14,6 +14,8 @@ const OUTSIDE_WINDOW_CODES = new Set([131047]);
 
 export const TEXT_FALLBACK_NOTE = "Sent as text (template pending approval)";
 
+export type TextResult = { ok: true; id: string } | { ok: false; error: string; code?: number };
+
 type GraphResponse = { messages?: { id: string }[]; error?: { message?: string; code?: number } };
 
 /**
@@ -76,6 +78,18 @@ export class MetaCloudProvider implements WhatsAppProvider {
       return this.sendAsText(m, to, r.body.error?.message ?? `HTTP ${r.status}`);
     }
     return failure(r.status, r.body);
+  }
+
+  /** Free-form text reply (only allowed within 24h of the contact's last message). */
+  async sendText(to: string, body: string): Promise<TextResult> {
+    const r = await this.post({ to: to.replace(/^\+/, ""), type: "text", text: { body: body.slice(0, 4096), preview_url: false } });
+    if ("networkError" in r) return { ok: false, error: `Network error: ${r.networkError}` };
+    if (r.status < 300 && r.body.messages?.[0]?.id) return { ok: true, id: r.body.messages[0].id };
+    const code = r.body.error?.code;
+    if (code !== undefined && OUTSIDE_WINDOW_CODES.has(code)) {
+      return { ok: false, code, error: "More than 24 hours since this contact last messaged. WhatsApp only allows approved templates now." };
+    }
+    return { ok: false, code, error: r.body.error?.message ?? `HTTP ${r.status}` };
   }
 
   /** Same message, sent free-form (inside the 24-hour window). */
