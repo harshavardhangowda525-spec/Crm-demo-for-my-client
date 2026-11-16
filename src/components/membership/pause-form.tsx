@@ -27,17 +27,24 @@ export function PauseForm({
   onDone,
   submit,
   showReason = true,
+  mode = "approve",
+  reservedDays = 0,
 }: {
   membership: PausableMembership;
   onDone?: () => void;
   submit?: (input: { membershipId: string; startDate: string; endDate: string; reason: string; idempotencyKey: string }) => Promise<
-    { ok: true; data: { newEndDate: string; remaining: number } } | { ok: false; error: string }
+    { ok: true; data: { newEndDate?: string; remaining?: number; status?: "pending" } } | { ok: false; error: string }
   >;
   showReason?: boolean;
+  /** "request": the member asks; staff approve it in the CRM. */
+  mode?: "approve" | "request";
+  /** Days already asked for in requests waiting for approval. */
+  reservedDays?: number;
 }) {
+  const isRequest = mode === "request";
   const router = useRouter();
   const today = todayISO();
-  const remaining = Math.max(0, membership.pause_allowance_days - membership.pause_days_used);
+  const remaining = Math.max(0, membership.pause_allowance_days - membership.pause_days_used - reservedDays);
   const firstStart = membership.start_date > today ? membership.start_date : today;
   const [startDate, setStartDate] = React.useState(firstStart);
   const [endDate, setEndDate] = React.useState(addDaysISO(firstStart, Math.min(remaining, 3) - 1));
@@ -59,8 +66,10 @@ export function PauseForm({
             : startDate > membership.end_date
               ? "The pause must start on or before the current expiry date."
               : overlaps
-                ? "These dates overlap an existing pause."
-                : null;
+                ? "These dates overlap an existing pause or request."
+                : isRequest && reason.trim().length < 3
+                  ? "Tell the gym the reason for your pause."
+                  : null;
   const newEnd = days > 0 ? addDaysISO(membership.end_date, days) : membership.end_date;
 
   function onSubmit(e: React.FormEvent) {
@@ -74,7 +83,8 @@ export function PauseForm({
         setKey(crypto.randomUUID());
         return;
       }
-      toast.success(`Pause approved · new expiry ${formatDate(res.data.newEndDate)} · ${res.data.remaining} days left`);
+      if (isRequest || ("status" in res.data && res.data.status === "pending")) toast.success("Pause request sent — the gym will review it and you'll see the decision here.");
+      else toast.success(`Pause approved · new expiry ${formatDate(res.data.newEndDate!)} · ${res.data.remaining} days left`);
       onDone?.();
       router.refresh();
     });
@@ -106,13 +116,13 @@ export function PauseForm({
         </div>
         <ArrowRight className="size-4 text-lime" />
         <div className="text-right">
-          <p className="text-xs text-muted">New expiry</p>
+          <p className="text-xs text-muted">{isRequest ? "New expiry if approved" : "New expiry"}</p>
           <p className="text-metric text-lg font-semibold text-lime">{problem ? "—" : formatDate(newEnd)}</p>
         </div>
       </div>
 
-      {showReason && (
-        <Field label="Reason (optional)" htmlFor="pr">
+      {(showReason || isRequest) && (
+        <Field label={isRequest ? "Reason for the pause" : "Reason (optional)"} htmlFor="pr">
           <Textarea id="pr" className="min-h-16" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Travel, illness…" maxLength={500} />
         </Field>
       )}
@@ -123,9 +133,13 @@ export function PauseForm({
         </p>
       )}
       <Button type="submit" size="lg" className="w-full" loading={pending} disabled={!!problem}>
-        Approve {days > 0 && !problem ? `${days}-day ` : ""}pause
+        {isRequest ? "Send pause request" : <>Approve {days > 0 && !problem ? `${days}-day ` : ""}pause</>}
       </Button>
-      <p className="text-center text-xs text-subtle">Valid requests are approved automatically and the expiry date moves by the paused days.</p>
+      <p className="text-center text-xs text-subtle">
+        {isRequest
+          ? "The gym reviews every request. Your expiry date moves by the paused days only after it is approved."
+          : "The pause applies immediately and the expiry date moves by the paused days."}
+      </p>
     </form>
   );
 }

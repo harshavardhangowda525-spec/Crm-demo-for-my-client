@@ -3,6 +3,8 @@ import { BadgeCheck, ChevronRight } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { GlassCard, SectionTitle } from "@/components/ui/card";
+import { PauseRequests } from "@/components/membership/pause-requests";
+import { getPendingPauseRequests } from "@/server/queries";
 import { FilterChips } from "@/components/ui/filter-chips";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState } from "@/components/ui/empty";
@@ -31,6 +33,7 @@ export default async function MembershipsPage({ searchParams }: { searchParams: 
   const today = todayISO();
   const in7 = addDaysISO(today, 7);
   const supabase = await createClient();
+  const pauseRequests = await getPendingPauseRequests(staff.gymId);
 
   const filtered = (k: string, cols: string, opts?: { count: "exact"; head?: boolean }) => {
     const base = supabase.from("memberships").select(cols, opts).eq("gym_id", staff.gymId);
@@ -67,6 +70,7 @@ export default async function MembershipsPage({ searchParams }: { searchParams: 
   return (
     <div className="space-y-6">
       <SectionTitle eyebrow="Members" title="Memberships" description="Expiry dates, pauses and payment status at a glance. Open a member to renew or pause." />
+      <PauseRequests requests={pauseRequests} />
       <FilterChips active={view} items={VIEWS.map(([k, l], i) => ({ key: k, label: l, count: counts[i], href: `/memberships?view=${k}` }))} />
       <GlassCard className="p-2 md:p-3">
         {!rows?.length ? (

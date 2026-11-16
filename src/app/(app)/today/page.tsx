@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { SectionTitle } from "@/components/ui/card";
 import { TodayList, type TodayItem } from "@/components/today/today-list";
 import { AddReminderButton } from "@/components/today/add-reminder";
-import { getStaffDirectory } from "@/server/queries";
+import { getPendingPauseRequests, getStaffDirectory } from "@/server/queries";
+import { PauseRequests } from "@/components/membership/pause-requests";
 
 export const metadata = { title: "Today" };
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function TodayPage() {
   const staff = await requireStaff();
   const supabase = await createClient();
-  const [{ data, error }, staffList] = await Promise.all([supabase.rpc("today_feed"), getStaffDirectory()]);
+  const [{ data, error }, staffList, pauseRequests] = await Promise.all([supabase.rpc("today_feed"), getStaffDirectory(), getPendingPauseRequests(staff.gymId)]);
   if (error) throw error;
   const items = (data ?? []) as TodayItem[];
   const urgent = items.filter((i) => i.priority === 1).length;
@@ -28,6 +29,7 @@ export default async function TodayPage() {
         }
         action={<AddReminderButton staff={staffList} variant="primary" label="New reminder" />}
       />
+      <PauseRequests requests={pauseRequests} />
       <TodayList items={items} gymName={staff.gymName} />
     </div>
   );

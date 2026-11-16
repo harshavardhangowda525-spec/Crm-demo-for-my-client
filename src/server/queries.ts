@@ -90,3 +90,18 @@ export const getActionCounts = cache(async (gymId: string, today: string) => {
     failed: failed.count ?? 0,
   };
 });
+
+/** Pause requests from the member portal waiting for a decision. */
+export async function getPendingPauseRequests(gymId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("pause_requests")
+    .select(
+      "id, customer_id, start_date, end_date, days, reason, created_at, customers(full_name, phone_e164), memberships(plan_name, end_date, pause_allowance_days, pause_days_used)",
+    )
+    .eq("gym_id", gymId)
+    .eq("status", "pending")
+    .order("created_at", { ascending: true })
+    .limit(50);
+  return (data ?? []) as unknown as import("@/components/membership/pause-requests").PauseRequestRow[];
+}

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -7,7 +8,6 @@ import { createAnonClient } from "@/lib/supabase/anon";
 import { PORTAL_COOKIE, PORTAL_PENDING_COOKIE, portalCookieOptions } from "@/lib/portal";
 import { dbError } from "@/lib/actions";
 import { pauseSchema } from "@/lib/validation";
-import { dispatchDueMessages } from "@/lib/whatsapp/dispatcher";
 
 export async function portalVerify(_prev: { error?: string }, formData: FormData): Promise<{ error?: string }> {
   const jar = await cookies();
@@ -31,23 +31,24 @@ export async function portalRequestPause(input: {
   endDate: string;
   reason: string;
   idempotencyKey: string;
-}): Promise<{ ok: true; data: { newEndDate: string; remaining: number } } | { ok: false; error: string }> {
+}): Promise<{ ok: true; data: { status: "pending" } } | { ok: false; error: string }> {
   const session = (await cookies()).get(PORTAL_COOKIE)?.value;
   if (!session) return { ok: false, error: "Your session has expired. Open the link from WhatsApp again." };
   const parsed = pauseSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the dates." };
   const v = parsed.data;
-  const { data, error } = await createAnonClient().rpc("portal_request_pause", {
+  if (!v.reason || v.reason.length < 3) return { ok: false, error: "Tell the gym the reason for your pause." };
+  const { error } = await createAnonClient().rpc("portal_request_pause", {
     p_session: session,
     p_membership_id: v.membershipId,
     p_start: v.startDate,
     p_end: v.endDate,
+    p_reason: v.reason,
     p_idempotency_key: v.idempotencyKey,
   });
   if (error) return { ok: false, error: error.code === "42501" ? "Your session has expired. Open the link from WhatsApp again." : dbError(error) };
-  await dispatchDueMessages({ limit: 5 }).catch(() => undefined);
-  const r = data as { new_end_date: string; remaining: number };
-  return { ok: true, data: { newEndDate: r.new_end_date, remaining: r.remaining } };
+  revalidatePath("/portal");
+  return { ok: true, data: { status: "pending" } };
 }
 
 export async function portalSignOut() {

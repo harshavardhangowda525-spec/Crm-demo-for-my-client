@@ -26,6 +26,16 @@ type PortalData = {
     pause_allowance_days: number;
     pause_days_used: number;
     pauses: { start_date: string; end_date: string; days: number; new_end_date: string; via: string }[];
+    requests: {
+      id: string;
+      start_date: string;
+      end_date: string;
+      days: number;
+      reason: string;
+      status: "pending" | "approved" | "declined" | "cancelled";
+      decision_note: string | null;
+      created_at: string;
+    }[];
   }[];
   invoices: { id: string; number: string; issue_date: string; total_paise: number; payment_status: string }[];
 };
@@ -111,6 +121,7 @@ export default async function PortalPage({ searchParams }: { searchParams: Promi
           ) : (
             <div className="mt-5">
               <PortalPauseButton
+                reservedDays={live.requests.filter((r) => r.status === "pending").reduce((n, r) => n + r.days, 0)}
                 membership={{
                   id: live.id,
                   plan_name: live.plan_name,
@@ -118,9 +129,30 @@ export default async function PortalPage({ searchParams }: { searchParams: Promi
                   end_date: live.end_date,
                   pause_allowance_days: live.pause_allowance_days,
                   pause_days_used: live.pause_days_used,
-                  pauses: live.pauses,
+                  pauses: [...live.pauses, ...live.requests.filter((r) => r.status === "pending")],
                 }}
               />
+            </div>
+          )}
+          {live.requests.length > 0 && (
+            <div className="mt-5">
+              <p className="mb-2 text-sm text-muted">Your pause requests</p>
+              <ul className="space-y-2 text-sm">
+                {live.requests.slice(0, 6).map((r) => (
+                  <li key={r.id} className="rounded-xl bg-white/[0.04] px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>
+                        {formatDate(r.start_date, true)} – {formatDate(r.end_date, true)} · {r.days} day{r.days === 1 ? "" : "s"}
+                      </span>
+                      <Badge tone={r.status === "approved" ? "green" : r.status === "declined" ? "red" : r.status === "pending" ? "amber" : "neutral"}>
+                        {r.status === "pending" ? "Waiting for approval" : r.status === "approved" ? "Approved" : r.status === "declined" ? "Declined" : "Cancelled"}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted">Your reason: {r.reason}</p>
+                    {r.decision_note && <p className="mt-1 text-xs text-fg">Gym: {r.decision_note}</p>}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           {live.pauses.length > 0 && (
