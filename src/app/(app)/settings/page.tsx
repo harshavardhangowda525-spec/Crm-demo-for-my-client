@@ -70,11 +70,11 @@ export default async function SettingsPage() {
         />
       </Card>
 
-      <Card id="staff" title="Staff & roles" description="Owner: everything. Admin: settings, discounts, cancellations. Staff: customers, enquiries, memberships, invoices, payments.">
+      <Card id="staff" title="Staff & roles" description="Owner: everything. Admin: settings, discounts, cancellations. Staff: customers, enquiries, memberships, invoices, payments. Add people from the Add button at the top.">
         <StaffManager staff={staffList} canEdit={can(staff.role, "staff.manage")} isOwner={staff.role === "owner"} myStaffId={staff.staffId} />
       </Card>
 
-      <Card id="trainers" title="Trainers" description="Personal trainers and floor trainers. Turn a trainer off when they leave; their history stays.">
+      <Card id="trainers" title="Trainers" description="Personal trainers and floor trainers. Add them from the Add button at the top; turn a trainer off when they leave.">
         <TrainersManager trainers={trainers ?? []} canEdit={can(staff.role, "staff.manage")} />
       </Card>
 

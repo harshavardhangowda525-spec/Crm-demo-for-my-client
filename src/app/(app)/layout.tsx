@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     getActionCounts(staff.gymId, todayISO()),
   ]);
   return (
-    <QuickAddProvider lookups={{ plans, staff: staffList, currentStaffId: staff.staffId }} canManageStaff={can(staff.role, "staff.manage")}>
+    <QuickAddProvider lookups={{ plans, staff: staffList, currentStaffId: staff.staffId }} canManageStaff={can(staff.role, "staff.manage")} isOwner={staff.role === "owner"}>
       <AppShell
         gymName={staff.gymName}
         role={staff.role}

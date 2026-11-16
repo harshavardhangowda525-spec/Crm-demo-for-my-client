@@ -3,14 +3,11 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Dumbbell, Plus } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Sheet } from "@/components/ui/sheet";
 import { setTrainerActive } from "@/server/trainers";
 import { formatPhone } from "@/lib/phone";
-import { TrainerForm } from "./trainer-form";
 
 export type TrainerRow = {
   id: string;
@@ -25,7 +22,6 @@ export type TrainerRow = {
 
 export function TrainersManager({ trainers, canEdit }: { trainers: TrainerRow[]; canEdit: boolean }) {
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
   const [, start] = React.useTransition();
   return (
     <div className="space-y-4">
@@ -66,14 +62,6 @@ export function TrainersManager({ trainers, canEdit }: { trainers: TrainerRow[];
           ))}
         </ul>
       )}
-      {canEdit && (
-        <Button variant="secondary" onClick={() => setOpen(true)}>
-          <Plus /> Add trainer
-        </Button>
-      )}
-      <Sheet open={open} onOpenChange={setOpen} title="Add a trainer" description="Personal trainers and floor trainers at your gym." size="lg">
-        <TrainerForm onDone={() => setOpen(false)} />
-      </Sheet>
     </div>
   );
 }

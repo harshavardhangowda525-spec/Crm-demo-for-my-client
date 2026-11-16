@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { motion } from "motion/react";
-import { useRouter } from "next/navigation";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, Dumbbell, MessageSquarePlus, Plus, Search, UserCog } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import { TrainerForm } from "@/components/settings/trainer-form";
+import { StaffForm } from "@/components/settings/staff-form";
 import { CustomerCreateForm, type CustomerFormLookups } from "./customer-form";
 import { CustomerSearch } from "./customer-search";
 
@@ -15,6 +15,7 @@ type Ctx = {
   openSearch: () => void;
   openTrainer: () => void;
   openChooser: () => void;
+  openStaff: () => void;
   canManageStaff: boolean;
 };
 const QuickAddContext = React.createContext<Ctx | null>(null);
@@ -29,16 +30,18 @@ export function useQuickAdd() {
 export function QuickAddProvider({
   lookups,
   canManageStaff = false,
+  isOwner = false,
   children,
 }: {
   lookups: CustomerFormLookups;
   canManageStaff?: boolean;
+  isOwner?: boolean;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const [addOpen, setAddOpen] = React.useState(false);
   const [trainerOpen, setTrainerOpen] = React.useState(false);
   const [chooserOpen, setChooserOpen] = React.useState(false);
+  const [staffOpen, setStaffOpen] = React.useState(false);
   const [prefill, setPrefill] = React.useState<string | undefined>();
   const [searchOpen, setSearchOpen] = React.useState(false);
 
@@ -53,6 +56,10 @@ export function QuickAddProvider({
     setTrainerOpen(true);
   }, []);
   const openChooser = React.useCallback(() => setChooserOpen(true), []);
+  const openStaff = React.useCallback(() => {
+    setChooserOpen(false);
+    setStaffOpen(true);
+  }, []);
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -68,10 +75,13 @@ export function QuickAddProvider({
   }, []);
 
   return (
-    <QuickAddContext.Provider value={{ openAdd, openSearch, openTrainer, openChooser, canManageStaff }}>
+    <QuickAddContext.Provider value={{ openAdd, openSearch, openTrainer, openChooser, openStaff, canManageStaff }}>
       {children}
       <Sheet open={trainerOpen} onOpenChange={setTrainerOpen} title="Add a trainer" description="Personal trainers and floor trainers at your gym." size="lg">
         <TrainerForm onDone={() => setTrainerOpen(false)} />
+      </Sheet>
+      <Sheet open={staffOpen} onOpenChange={setStaffOpen} title="Add a staff member" description="Give a colleague access to the CRM with a role.">
+        <StaffForm isOwner={isOwner} onDone={() => setStaffOpen(false)} />
       </Sheet>
       <Sheet open={chooserOpen} onOpenChange={setChooserOpen} title="Add" description="What would you like to add?">
         <div className="grid gap-2">
@@ -83,7 +93,7 @@ export function QuickAddProvider({
                 setChooserOpen(false);
                 if (o.key === "enquiry") openAdd();
                 else if (o.key === "trainer") openTrainer();
-                else router.push("/settings#staff");
+                else openStaff();
               }}
               className="focus-ring flex items-center gap-3 rounded-2xl bg-white/[0.03] p-4 text-left shadow-[inset_0_0_0_1px_var(--color-line)] hover:bg-white/[0.05]"
             >
@@ -130,8 +140,7 @@ const ADD_OPTIONS = [
 
 /** "Add" menu: enquiry, staff member, trainer. */
 export function QuickAddButton({ className }: { className?: string }) {
-  const { openAdd, openTrainer, canManageStaff } = useQuickAdd();
-  const router = useRouter();
+  const { openAdd, openTrainer, openStaff, canManageStaff } = useQuickAdd();
   return (
     <Dropdown.Root>
       <Dropdown.Trigger
@@ -150,7 +159,7 @@ export function QuickAddButton({ className }: { className?: string }) {
               onSelect={() => {
                 if (o.key === "enquiry") openAdd();
                 else if (o.key === "trainer") openTrainer();
-                else router.push("/settings#staff");
+                else openStaff();
               }}
               className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm outline-none data-[highlighted]:bg-white/[0.06]"
             >
