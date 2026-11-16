@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox, Field, Select, Textarea } from "@/components/ui/field";
@@ -31,6 +31,7 @@ export function CustomerCreateForm({
   const [pending, start] = React.useTransition();
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [duplicate, setDuplicate] = React.useState<string | null>(null);
+  const [saved, setSaved] = React.useState<{ id: string; name: string } | null>(null);
   const isPhone = prefill && /\d{3,}/.test(prefill);
   const today = todayISO();
 
@@ -67,9 +68,27 @@ export function CustomerCreateForm({
         return;
       }
       toast.success("Customer and enquiry saved");
-      onDone?.();
-      router.push(`/customers/${res.data.customerId}`);
+      setSaved({ id: res.data.customerId, name: s("fullName").trim() });
+      // The sheet closes once the profile has opened (see QuickAddProvider).
+      router.push(`/customers/${res.data.customerId}?new=1#enquiries`);
     });
+  }
+
+  if (saved) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-10 text-center" role="status">
+        <div className="grid size-14 place-items-center rounded-2xl bg-lime/15 text-lime">
+          <CheckCircle2 className="size-7" />
+        </div>
+        <p className="font-display text-lg font-semibold">Saved — {saved.name}</p>
+        <p className="flex items-center gap-2 text-sm text-muted">
+          <Loader2 className="size-4 animate-spin" /> Opening their profile and enquiry…
+        </p>
+        <Link href={`/customers/${saved.id}?new=1#enquiries`} onClick={onDone} className="text-sm text-cyan hover:underline">
+          Open now
+        </Link>
+      </div>
+    );
   }
 
   return (

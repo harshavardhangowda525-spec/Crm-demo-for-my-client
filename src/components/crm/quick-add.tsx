@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "motion/react";
+import { usePathname } from "next/navigation";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, Dumbbell, MessageSquarePlus, Plus, Search, UserCog } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
@@ -51,6 +52,11 @@ export function QuickAddProvider({
     setAddOpen(true);
   }, []);
   const openSearch = React.useCallback(() => setSearchOpen(true), []);
+  // Close the enquiry sheet once navigation to the new profile has happened.
+  const pathname = usePathname();
+  React.useEffect(() => {
+    setAddOpen(false);
+  }, [pathname]);
   const openTrainer = React.useCallback(() => {
     setChooserOpen(false);
     setTrainerOpen(true);

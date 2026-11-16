@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, ChevronLeft, FileText, Mail, MessageCircle, Phone, ReceiptIndianRupee, UserRound } from "lucide-react";
+import { CalendarDays, CheckCircle2, ChevronLeft, FileText, Mail, MessageCircle, Phone, ReceiptIndianRupee, UserRound } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { requireStaff } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
@@ -21,8 +22,15 @@ import type { TagOption } from "@/components/memory/tag-picker";
 
 export const metadata = { title: "Customer" };
 
-export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CustomerPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ new?: string }>;
+}) {
   const { id } = await params;
+  const justAdded = (await searchParams).new === "1";
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const staff = await requireStaff();
   const supabase = await createClient();
@@ -91,6 +99,17 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       <Link href="/customers" className="focus-ring inline-flex items-center gap-1 rounded-lg text-sm text-muted hover:text-fg">
         <ChevronLeft className="size-4" /> Customers
       </Link>
+
+      {justAdded && (
+        <div className="flex flex-col gap-2 rounded-2xl bg-lime/10 p-4 shadow-[inset_0_0_0_1px_rgb(198_255_69/0.3)] sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-center gap-2 text-sm font-medium text-lime">
+            <CheckCircle2 className="size-4 shrink-0" /> New enquiry saved for {c.full_name}.
+          </p>
+          <a href="#enquiries" className="text-sm text-cyan hover:underline">
+            View enquiry details ↓
+          </a>
+        </div>
+      )}
 
       <GlassCard glow="lime" className="p-5 md:p-7">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
@@ -264,7 +283,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         </div>
 
         <div className="space-y-6">
-          <GlassCard className="p-5">
+          <GlassCard id="enquiries" className={cn("scroll-mt-24 p-5", justAdded && "shadow-[0_0_0_1px_rgb(198_255_69/0.45)]")}>
             <h2 className="mb-3 font-display text-lg font-semibold">Enquiries</h2>
             {!enquiries?.length ? (
               <p className="text-sm text-muted">No enquiries.</p>
