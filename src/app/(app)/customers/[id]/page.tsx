@@ -67,7 +67,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
     supabase.from("customer_promises").select("id, body, due_date, status").eq("customer_id", id).order("due_date", { ascending: true, nullsFirst: false }),
     supabase.from("enquiry_notes").select("body, created_at, kind, author_id").eq("customer_id", id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.rpc("renewal_stats", { p_customer_ids: [id] }),
-    supabase.from("customers").select("preferred_contact_time, preferred_language, ai_summary, ai_summary_at").eq("id", id).single(),
+    supabase.from("customers").select("preferred_contact_time, preferred_language, ai_summary, ai_summary_at, age_years").eq("id", id).single(),
   ]);
   const linked = ((tagLinks ?? []) as unknown as { tag_id: string; customer_tags: TagOption }[]).map((l) => l.customer_tags);
   // Inactive tags still linked to this customer stay visible.
@@ -116,6 +116,11 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 {c.email && (
                   <span className="inline-flex items-center gap-1.5">
                     <Mail className="size-3.5" /> {c.email}
+                  </span>
+                )}
+                {(c.gender || ai?.age_years) && (
+                  <span className="inline-flex items-center gap-1.5 capitalize">
+                    {[c.gender && c.gender !== "prefer_not_to_say" ? c.gender : null, ai?.age_years ? `${ai.age_years} yrs` : null].filter(Boolean).join(" · ")}
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1.5">

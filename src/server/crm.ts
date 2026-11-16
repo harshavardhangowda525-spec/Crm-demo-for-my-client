@@ -45,6 +45,7 @@ export async function createCustomer(
       p_enquiry_status: v.status,
       p_follow_up_date: v.followUpDate,
       p_whatsapp_opt_in: v.whatsappOptIn,
+      p_age: v.age,
     });
     if (error) return fail(dbError(error));
     const r = data as { status: "created" | "duplicate"; customer_id: string };

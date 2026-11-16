@@ -45,7 +45,8 @@ export function CustomerCreateForm({
         phone: s("phone"),
         email: s("email"),
         dateOfBirth: s("dateOfBirth"),
-        gender: s("gender") as "",
+        gender: s("gender") as "male",
+        age: s("age"),
         interestedPlanId: s("interestedPlanId"),
         source: s("source") as "walk_in",
         enquiryDate: s("enquiryDate"),
@@ -108,6 +109,19 @@ export function CustomerCreateForm({
             }}
           />
         </Field>
+        <Field label="Gender" htmlFor="gender" error={errors.gender}>
+          <Select id="gender" name="gender" required defaultValue="" aria-invalid={!!errors.gender}>
+            <option value="" disabled>
+              Select…
+            </option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </Select>
+        </Field>
+        <Field label="Age" htmlFor="age" error={errors.age}>
+          <Input id="age" name="age" type="number" inputMode="numeric" min={10} max={100} required placeholder="e.g. 26" aria-invalid={!!errors.age} />
+        </Field>
         <Field label="Interested plan" htmlFor="interestedPlanId" hint={lookups.plans.length ? undefined : "Add plans in Settings → Plans"}>
           <Select id="interestedPlanId" name="interestedPlanId" defaultValue="">
             <option value="">Not decided</option>
@@ -163,15 +177,6 @@ export function CustomerCreateForm({
         </Field>
         <Field label="Date of birth (for birthday wishes)" htmlFor="dateOfBirth">
           <Input id="dateOfBirth" name="dateOfBirth" type="date" max={today} />
-        </Field>
-        <Field label="Gender (optional)" htmlFor="gender">
-          <Select id="gender" name="gender" defaultValue="">
-            <option value="">Not specified</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-            <option value="prefer_not_to_say">Prefer not to say</option>
-          </Select>
         </Field>
           </div>
         </details>

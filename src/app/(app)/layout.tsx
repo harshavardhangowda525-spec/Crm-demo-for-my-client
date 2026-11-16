@@ -1,4 +1,5 @@
 import { requireStaff } from "@/lib/auth";
+import { can } from "@/lib/permissions";
 import { todayISO } from "@/lib/format";
 import { AppShell } from "@/components/shell/app-shell";
 import { Header } from "@/components/shell/header";
@@ -13,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     getActionCounts(staff.gymId, todayISO()),
   ]);
   return (
-    <QuickAddProvider lookups={{ plans, staff: staffList, currentStaffId: staff.staffId }}>
+    <QuickAddProvider lookups={{ plans, staff: staffList, currentStaffId: staff.staffId }} canManageStaff={can(staff.role, "staff.manage")}>
       <AppShell
         gymName={staff.gymName}
         role={staff.role}

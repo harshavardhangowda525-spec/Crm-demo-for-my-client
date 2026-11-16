@@ -3,13 +3,21 @@ import { activationSchema, customerCreateSchema, pauseSchema } from "./validatio
 
 describe("customer validation", () => {
   it("normalises the phone to E.164 so duplicates are detected regardless of formatting", () => {
-    const a = customerCreateSchema.parse({ fullName: "Rahul Kumar", phone: "98765 43210" });
-    const b = customerCreateSchema.parse({ fullName: "Rahul Kumar", phone: "+91-98765-43210" });
+    const a = customerCreateSchema.parse({ fullName: "Rahul Kumar", phone: "98765 43210", gender: "male", age: 28 });
+    const b = customerCreateSchema.parse({ fullName: "Rahul Kumar", phone: "+91-98765-43210", gender: "male", age: "28" });
     expect(a.phone).toBe("+919876543210");
     expect(b.phone).toBe(a.phone);
   });
   it("rejects invalid numbers and empty names", () => {
     expect(customerCreateSchema.safeParse({ fullName: "R", phone: "12345" }).success).toBe(false);
+  });
+  it("requires gender and a sensible age for new enquiries", () => {
+    const ok = { fullName: "Rahul Kumar", phone: "9876543210" };
+    expect(customerCreateSchema.safeParse({ ...ok, age: 25 }).success).toBe(false);
+    expect(customerCreateSchema.safeParse({ ...ok, gender: "female" }).success).toBe(false);
+    expect(customerCreateSchema.safeParse({ ...ok, gender: "female", age: 7 }).success).toBe(false);
+    expect(customerCreateSchema.safeParse({ ...ok, gender: "female", age: "" }).success).toBe(false);
+    expect(customerCreateSchema.safeParse({ ...ok, gender: "female", age: "24" }).success).toBe(true);
   });
   it("does not allow 'converted' to be chosen manually", () => {
     expect(customerCreateSchema.safeParse({ fullName: "Rahul", phone: "9876543210", status: "converted" }).success).toBe(false);

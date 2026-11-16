@@ -55,7 +55,11 @@ export default async function PortalPage({ searchParams }: { searchParams: Promi
   const { data, error } = await createAnonClient().rpc("portal_data", { p_session: session });
   if (error || !data) return <Message title="Session expired" text="Open the link from WhatsApp again to continue." />;
   const d = data as PortalData;
-  const live = d.memberships.find((m) => ["active", "paused", "pending"].includes(m.status));
+  // Show the membership running now (that's the one a member can pause); a
+  // renewal booked for later is listed separately instead of hiding it.
+  const current = d.memberships.find((m) => m.status === "active" || m.status === "paused");
+  const live = current ?? d.memberships.find((m) => m.status === "pending");
+  const upcoming = current ? d.memberships.filter((m) => m.status === "pending" && m.id !== current.id) : [];
   const today = d.gym.today;
 
   return (
@@ -102,7 +106,9 @@ export default async function PortalPage({ searchParams }: { searchParams: Promi
           <div className="divider-metal my-5" />
           <p className="mb-2 text-sm text-muted">Pause allowance this term</p>
           <PauseMeter total={live.pause_allowance_days} used={live.pause_days_used} />
-          {live.status !== "pending" && (
+          {live.status === "pending" ? (
+            <p className="mt-5 rounded-xl bg-white/[0.04] px-3.5 py-3 text-sm text-muted">Pauses can be requested once this membership is active (after payment is complete).</p>
+          ) : (
             <div className="mt-5">
               <PortalPauseButton
                 membership={{
@@ -132,6 +138,14 @@ export default async function PortalPage({ searchParams }: { searchParams: Promi
               </ul>
             </div>
           )}
+          {upcoming.map((u) => (
+            <div key={u.id} className="mt-5 rounded-xl bg-cyan/[0.06] px-3.5 py-3 text-sm shadow-[inset_0_0_0_1px_rgb(88_217_255/0.18)]">
+              <p className="font-medium text-fg">Renewal booked: {u.plan_name}</p>
+              <p className="text-xs text-muted">
+                {formatDate(u.start_date)} – {formatDate(u.end_date)} · starts after payment is complete
+              </p>
+            </div>
+          ))}
         </section>
       ) : (
         <section className="glass mt-5 p-5 text-sm text-muted">You don&apos;t have an active membership right now. Visit the front desk to renew.</section>

@@ -42,10 +42,15 @@ export const customerCreateSchema = z.object({
     .optional()
     .transform((v) => (v ? v : null)),
   dateOfBirth: optionalIsoDate,
-  gender: z
-    .union([z.enum(["male", "female", "other", "prefer_not_to_say"]), z.literal("")])
-    .optional()
-    .transform((v) => (v ? v : null)),
+  gender: z.enum(["male", "female", "other"], { error: "Choose male, female or other" }),
+  age: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : v),
+    z.coerce
+      .number({ error: "Enter the age" })
+      .int("Enter the age in whole years")
+      .min(10, "Age must be at least 10")
+      .max(100, "Age must be 100 or less"),
+  ),
   interestedPlanId: optionalUuid,
   source: sourceInput.default("walk_in"),
   enquiryDate: optionalIsoDate,
@@ -58,8 +63,15 @@ export const customerCreateSchema = z.object({
 export type CustomerCreateInput = z.input<typeof customerCreateSchema>;
 
 export const customerUpdateSchema = customerCreateSchema
-  .pick({ fullName: true, phone: true, email: true, dateOfBirth: true, gender: true, assignedStaffId: true, notes: true })
-  .extend({ customerId: uuid, whatsappOptIn: z.boolean() });
+  .pick({ fullName: true, phone: true, email: true, dateOfBirth: true, assignedStaffId: true, notes: true })
+  .extend({
+    customerId: uuid,
+    whatsappOptIn: z.boolean(),
+    gender: z
+      .union([z.enum(["male", "female", "other", "prefer_not_to_say"]), z.literal("")])
+      .optional()
+      .transform((v) => (v ? v : null)),
+  });
 
 export const enquiryUpdateSchema = z.object({
   enquiryId: uuid,

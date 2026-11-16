@@ -6,6 +6,7 @@ import { GlassCard, SectionTitle } from "@/components/ui/card";
 import { GymSettingsForm } from "@/components/settings/gym-form";
 import { PlansManager } from "@/components/settings/plans-manager";
 import { StaffManager } from "@/components/settings/staff-manager";
+import { TrainersManager, type TrainerRow } from "@/components/settings/trainers-manager";
 import { AccountForms, DemoDataControls } from "@/components/settings/account-and-demo";
 import { getGym, getPlans, getStaffDirectory } from "@/server/queries";
 import { MyReminders, TagCatalogue } from "@/components/settings/reminders";
@@ -19,10 +20,17 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const { count: demoCount } = await supabase.from("customers").select("id", { count: "exact", head: true }).eq("gym_id", staff.gymId).eq("is_demo", true);
   const env = serverEnv();
-  const [{ data: me }, { data: profile }, { data: tags }] = await Promise.all([
+  const [{ data: me }, { data: profile }, { data: tags }, { data: trainers }] = await Promise.all([
     supabase.from("gym_staff").select("briefing_enabled, briefing_time, evening_summary_enabled, evening_summary_time").eq("id", staff.staffId).single(),
     supabase.from("user_profiles").select("phone_e164").eq("id", staff.userId).single(),
     supabase.from("customer_tags").select("id, label, kind, active").eq("gym_id", staff.gymId).order("kind").order("sort_order").order("label"),
+    supabase
+      .from("trainers")
+      .select("id, full_name, phone_e164, gender, kind, specialization, experience_years, active")
+      .eq("gym_id", staff.gymId)
+      .order("active", { ascending: false })
+      .order("full_name")
+      .returns<TrainerRow[]>(),
   ]);
 
   return (
@@ -64,6 +72,10 @@ export default async function SettingsPage() {
 
       <Card id="staff" title="Staff & roles" description="Owner: everything. Admin: settings, discounts, cancellations. Staff: customers, enquiries, memberships, invoices, payments.">
         <StaffManager staff={staffList} canEdit={can(staff.role, "staff.manage")} isOwner={staff.role === "owner"} myStaffId={staff.staffId} />
+      </Card>
+
+      <Card id="trainers" title="Trainers" description="Personal trainers and floor trainers. Turn a trainer off when they leave; their history stays.">
+        <TrainersManager trainers={trainers ?? []} canEdit={can(staff.role, "staff.manage")} />
       </Card>
 
       {staff.role === "owner" && (
